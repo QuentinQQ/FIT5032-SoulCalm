@@ -37,16 +37,18 @@
     </header>
 
     <!-- Collapsible nav group for md and smaller screens -->
-    <b-collapse id="nav-collapse" class="d-md-none">
+    <!-- <b-collapse id="nav-collapse" class="d-md-none">
       <ul class="nav flex-column">
         <li v-for="item in navItems" :key="item.path" class="nav-item">
           <router-link :to="item.path" class="nav-link">{{ item.name }}</router-link>
         </li>
       </ul>
-    </b-collapse>
+    </b-collapse> -->
 
     <main>
-      <router-view></router-view>
+      <div class="container">
+        <router-view></router-view>
+      </div>
     </main>
   </div>
 </template>
@@ -70,6 +72,11 @@ const navItems = [
   margin: 0 auto;
   padding: 20px;
   border-radius: 10px;
+}
+
+.main-container {
+  width: 100%;
+  padding-top: 80px;
 }
 
 .nav-header {
