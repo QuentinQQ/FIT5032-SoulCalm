@@ -1,8 +1,8 @@
 <template>
-  <div class="app-container">
+  <div class="container">
     <HeaderView />
     <main>
-      <div class="content-container">
+      <div class="container">
         <router-view></router-view>
       </div>
     </main>
@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import HeaderView from './components/NavHeaderView.vue'
 </script>
 

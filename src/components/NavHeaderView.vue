@@ -54,11 +54,31 @@
 </template>
 
 <script setup>
-// 无需额外的脚本部分
+const navItems = [
+  { name: 'Home', path: '/' },
+  { name: 'Learn', path: '/learn' },
+  { name: 'News', path: '/news-and-events' },
+  { name: 'Community', path: '/community' },
+  { name: 'Help', path: '/help' },
+  { name: 'Involved', path: '/involved' },
+  { name: 'About', path: '/about' }
+]
 </script>
 
 <style scoped>
-/* 在这里保留之前的样式 */
+.container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 80vw;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.main-container {
+  width: 100%;
+  padding-top: 80px;
+}
+
 .nav-header {
   position: fixed;
   top: 0;
