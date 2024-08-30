@@ -12,7 +12,6 @@ import NewsAndEventsView from '@/views/NewsAndEventsView.vue'
 import LoginView from '@/views/authentication/LoginView.vue'
 import RegisterView from '@/views/authentication/RegisterView.vue'
 
-
 const routes = [{
         path: '/',
         name: 'Home',
@@ -64,5 +63,6 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 })
+
 
 export default router

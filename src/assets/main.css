@@ -1,10 +1,86 @@
-@import './base.css';
+/* 顶层容器 */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 确保整个视口高度 */
+  width: 100%; /* 设置宽度为100% */
+  overflow-y: auto;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 主容器，用于包裹主要内容 */
+.top-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 让子元素均匀分布 */
+  flex: 1; /* 占据剩余空间 */
+  padding: 0 1rem; /* 基础内边距 */
+  overflow-y: auto; /* 允许垂直滚动 */
+}
+
+/* 响应式布局 */
+@media (min-width: 768px) {
+  .top-container {
+    padding: 0 2rem; /* 中等屏幕增加内边距 */
+  }
+}
+
+@media (min-width: 1024px) {
+  .top-container {
+    padding: 0 4rem; /* 大屏幕增加内边距 */
+  }
+}
+
+@media (min-width: 1280px) {
+  .top-container {
+    flex-direction: column; /* 垂直排列 */
+    align-items: stretch; /* 撑满整个宽度 */
+  }
+}
+
+/* 链接样式 */
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+/* 标题样式 */
+h1 {
+  text-align: center;
+  margin-top: 20px;
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
 }
 
 a,
@@ -21,7 +97,7 @@ a,
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   body {
     display: flex;
     place-items: center;
@@ -33,3 +109,4 @@ a,
     padding: 0 2rem;
   }
 }
+ */

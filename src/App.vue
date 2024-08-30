@@ -1,30 +1,25 @@
 <template>
-  <div class="container">
-    <HeaderView />
-    <main>
-      <div class="container">
-        <router-view></router-view>
-      </div>
-    </main>
+  <div id="app">
+    <div><NavHeaderView /></div>
+    <div class="main-content"><router-view></router-view></div>
   </div>
+  <FooterView></FooterView>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import HeaderView from './components/NavHeaderView.vue'
+import NavHeaderView from './components/NavHeaderView.vue'
+import FooterView from './components/FooterView.vue'
 </script>
 
 <style scoped>
-.container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 80vw;
-  margin: 0 auto;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-.main-container {
-  width: 100%;
+.main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding-top: 80px;
+  height: calc(100vh - 80px);
+  box-sizing: border-box;
 }
 </style>

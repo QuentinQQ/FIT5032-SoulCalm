@@ -46,14 +46,24 @@
 
       <!-- Login and Register buttons -->
       <div class="d-flex">
-        <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
-        <router-link to="/register" class="btn btn-primary">Register</router-link>
+        <!-- <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
+        <router-link to="/register" class="btn btn-primary">Register</router-link> -->
+        <button @click="navigateTo('/login')" class="btn btn-outline-primary me-2">Login</button>
+        <button @click="navigateTo('/register')" class="btn btn-primary">Register</button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
+import router from '../router'
+
+// const router = useRouter()
+
+const navigateTo = (path) => {
+  router.push(path)
+}
+
 const navItems = [
   { name: 'Home', path: '/' },
   { name: 'Learn', path: '/learn' },
@@ -66,19 +76,6 @@ const navItems = [
 </script>
 
 <style scoped>
-.container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 80vw;
-  margin: 0 auto;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-.main-container {
-  width: 100%;
-  padding-top: 80px;
-}
-
 .nav-header {
   position: fixed;
   top: 0;
@@ -87,6 +84,7 @@ const navItems = [
   z-index: 1000;
   padding: 10px 0;
   background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
 }
 
 .logo {
