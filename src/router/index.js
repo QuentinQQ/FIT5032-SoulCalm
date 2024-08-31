@@ -11,6 +11,16 @@ import LearnView from '@/views/LearnView.vue'
 import NewsAndEventsView from '@/views/NewsAndEventsView.vue'
 import LoginView from '@/views/authentication/LoginView.vue'
 import RegisterView from '@/views/authentication/RegisterView.vue'
+import AccessDeniedView from '@/views/AccessDeniedView.vue'
+import {
+    useAuth,
+} from '@/router/authenticate'
+
+const {
+    isAuthenticated,
+    login,
+    currentRole
+} = useAuth()
 
 const routes = [{
         path: '/',
@@ -25,7 +35,11 @@ const routes = [{
     {
         path: '/community',
         name: 'Community',
-        component: Community
+        component: Community,
+        meta: {
+            requiresAuth: true,
+            role: 'user'
+        }
     },
     {
         path: '/help',
@@ -56,6 +70,11 @@ const routes = [{
         path: '/register',
         name: 'Register',
         component: RegisterView
+    },
+    {
+        path: '/access-denied',
+        name: 'AccessDenied',
+        component: AccessDeniedView
     }
 ]
 
@@ -63,6 +82,34 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 })
+
+router.beforeEach((to, from, next) => {
+    // if (to.name === 'Community' && !isAuthenticated.value) {
+    //     console.log("Access denied: Not authenticated");
+    //     console.log("isAuthenticated.value:", isAuthenticated.value);
+    //     next();
+    // } else {
+    //     console.log("Access success!");
+    //     console.log("isAuthenticated.value:", isAuthenticated.value);
+    //     next();
+    // }
+    // 检查是否需要认证
+    if (to.meta.requiresAuth && !isAuthenticated.value) {
+        console.log("Access denied: Please log in.");
+        alert("Access denied: Please log in."); // 提示用户登录
+        next('/access-denied'); // 未认证时重定向到拒绝访问页面
+    }
+    // 检查是否访问 Community 路由且角色不符合
+    else if (to.name === 'Community' && isAuthenticated.value && currentRole.value !== 'user') {
+        console.log("Access denied: You do not have the required permissions.");
+        alert("Access denied: You do not have the required permissions."); // 提示用户角色不符合
+        next('/access-denied'); // 角色不匹配时重定向到拒绝访问页面
+    }
+    // 符合所有条件，允许导航
+    else {
+        next(); // 通过验证，继续导航
+    }
+});
 
 
 export default router

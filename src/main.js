@@ -11,6 +11,7 @@ import {
 } from 'vue'
 
 const app = createApp(App);
+
 app.use(PrimeVue, {
     theme: {
         preset: Aura
