@@ -1,46 +1,42 @@
-/* 顶层容器 */
 #app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* 确保整个视口高度 */
-  width: 100%; /* 设置宽度为100% */
+  min-height: 100vh;
+  width: 100%;
   overflow-y: auto;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 主容器，用于包裹主要内容 */
 .top-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 让子元素均匀分布 */
-  flex: 1; /* 占据剩余空间 */
-  padding: 0 1rem; /* 基础内边距 */
-  overflow-y: auto; /* 允许垂直滚动 */
+  justify-content: space-between;
+  flex: 1;
+  padding: 0 1rem;
+  overflow-y: auto;
 }
 
-/* 响应式布局 */
 @media (min-width: 768px) {
   .top-container {
-    padding: 0 2rem; /* 中等屏幕增加内边距 */
+    padding: 0 2rem;
   }
 }
 
 @media (min-width: 1024px) {
   .top-container {
-    padding: 0 4rem; /* 大屏幕增加内边距 */
+    padding: 0 4rem;
   }
 }
 
 @media (min-width: 1280px) {
   .top-container {
-    flex-direction: column; /* 垂直排列 */
-    align-items: stretch; /* 撑满整个宽度 */
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
-/* 链接样式 */
 a,
 .green {
   text-decoration: none;
@@ -55,11 +51,9 @@ a,
   }
 }
 
-/* 标题样式 */
 h1 {
   text-align: center;
   margin-top: 20px;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* @import './base.css';

@@ -17,7 +17,7 @@ import FooterView from './components/FooterView.vue'
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   padding-top: 80px;
   height: calc(100vh - 80px);
   box-sizing: border-box;

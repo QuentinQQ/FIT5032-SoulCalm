@@ -24,24 +24,6 @@ import {
 const isAuthenticated = ref(false);
 const currentRole = ref('');
 
-// const signup = (email, password) => {
-//     return createUserWithEmailAndPassword(auth, email, password)
-//         .then((userCredential) => {
-//             const user = userCredential.user;
-//             isAuthenticated.value = true; // update authentication status
-//             console.log('User signed up:', user);
-//             alert('User signed up successfully');
-//             router.push('/'); // push to home page
-//             return user;
-//         })
-//         .catch((error) => {
-//             const errorCode = error.code;
-//             const errorMessage = error.message;
-//             console.error('Signup error:', errorCode, errorMessage);
-//             alert(errorMessage);
-//             throw error;
-//         });
-// };
 
 const saveUserToDatabase = async (user, userRole) => {
     try {
@@ -58,7 +40,7 @@ const saveUserToDatabase = async (user, userRole) => {
     }
 };
 
-// 注册用户并保存用户信息
+
 const signup = (email, password, username) => {
     const defaultRole = 'user';
     return createUserWithEmailAndPassword(auth, email, password)
@@ -66,11 +48,6 @@ const signup = (email, password, username) => {
             const user = userCredential.user;
             console.log('User ID (uid):', user.uid);
             console.log('User Email:', user.email);
-            console.log('Email Verified:', user.emailVerified);
-            console.log('Display Name:', user.displayName);
-            console.log('Photo URL:', user.photoURL);
-            console.log('Phone Number:', user.phoneNumber);
-            console.log('Provider ID:', user.providerId);
             console.log('Creation Time:', user.metadata.creationTime);
             console.log('Last Sign In Time:', user.metadata.lastSignInTime);
             isAuthenticated.value = true;
@@ -94,7 +71,6 @@ const signup = (email, password, username) => {
 
 const getAndSetCurrentUserRole = async (uid) => {
     try {
-        // 使用 Firestore 的查询方法，根据 `uid` 字段查找用户文档
         const q = query(collection(db, "users"), where("uid", "==", uid));
         const querySnapshot = await getDocs(q);
 

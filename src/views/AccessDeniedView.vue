@@ -1,11 +1,16 @@
 <template>
   <div class="container">
-    <div class="c-not-authenticated">
-      <div>
-        <h1 class="text-center">Access Denied</h1>
+    <div>
+      <h1 class="text-center">Access Denied</h1>
+      <!-- not log in -->
+      <div v-if="!isAuthenticated">
         <p class="text-center">
           You do not have permission to view this page. Please log in first.
         </p>
+      </div>
+      <!-- logged in -->
+      <div v-else-if="currentRole == 'user'">
+        <p class="text-center">You do not have permission to view this page.</p>
       </div>
     </div>
   </div>
@@ -15,5 +20,5 @@
 import { ref } from 'vue'
 import { useAuth } from '@/router/authenticate'
 
-const { isAuthenticated } = useAuth()
+const { isAuthenticated, currentRole } = useAuth()
 </script>

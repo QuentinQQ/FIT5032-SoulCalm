@@ -96,13 +96,11 @@ router.beforeEach((to, from, next) => {
     // 检查是否需要认证
     if (to.meta.requiresAuth && !isAuthenticated.value) {
         console.log("Access denied: Please log in.");
-        alert("Access denied: Please log in."); // 提示用户登录
         next('/access-denied'); // 未认证时重定向到拒绝访问页面
     }
     // 检查是否访问 Community 路由且角色不符合
     else if (to.name === 'Community' && isAuthenticated.value && currentRole.value !== 'user') {
         console.log("Access denied: You do not have the required permissions.");
-        alert("Access denied: You do not have the required permissions."); // 提示用户角色不符合
         next('/access-denied'); // 角色不匹配时重定向到拒绝访问页面
     }
     // 符合所有条件，允许导航
