@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useAuth } from '@/router/authenticate'
+import { useAuth } from '@/firebase/authenticate'
 
 const { isAuthenticated } = useAuth()
 </script>

@@ -12,9 +12,11 @@ import NewsAndEventsView from '@/views/NewsAndEventsView.vue'
 import LoginView from '@/views/authentication/LoginView.vue'
 import RegisterView from '@/views/authentication/RegisterView.vue'
 import AccessDeniedView from '@/views/AccessDeniedView.vue'
+import GetMentalHealthCoachView from '@/views/help/CoachView.vue'
+import GetMentalHealthProfessionalView from '@/views/help/ProfessionalView.vue'
 import {
     useAuth,
-} from '@/router/authenticate'
+} from '@/firebase/authenticate'
 
 const {
     isAuthenticated,
@@ -75,6 +77,16 @@ const routes = [{
         path: '/access-denied',
         name: 'AccessDenied',
         component: AccessDeniedView
+    },
+    {
+        path: '/help/get-mental-health-coach',
+        name: 'GetMentalHealthCoach',
+        component: GetMentalHealthCoachView
+    },
+    {
+        path: '/help/get-mental-health-professional',
+        name: 'GetMentalHealthProfessional',
+        component: GetMentalHealthProfessionalView
     }
 ]
 
@@ -84,28 +96,17 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    // if (to.name === 'Community' && !isAuthenticated.value) {
-    //     console.log("Access denied: Not authenticated");
-    //     console.log("isAuthenticated.value:", isAuthenticated.value);
-    //     next();
-    // } else {
-    //     console.log("Access success!");
-    //     console.log("isAuthenticated.value:", isAuthenticated.value);
-    //     next();
-    // }
-    // 检查是否需要认证
+    // requiresAuth and not authenticated
     if (to.meta.requiresAuth && !isAuthenticated.value) {
         console.log("Access denied: Please log in.");
-        next('/access-denied'); // 未认证时重定向到拒绝访问页面
+        next('/access-denied');
     }
-    // 检查是否访问 Community 路由且角色不符合
+    // to Community page, authenticated but not user
     else if (to.name === 'Community' && isAuthenticated.value && currentRole.value !== 'user') {
         console.log("Access denied: You do not have the required permissions.");
-        next('/access-denied'); // 角色不匹配时重定向到拒绝访问页面
-    }
-    // 符合所有条件，允许导航
-    else {
-        next(); // 通过验证，继续导航
+        next('/access-denied');
+    } else {
+        next();
     }
 });
 

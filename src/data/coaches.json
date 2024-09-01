@@ -1,0 +1,25 @@
+[{
+        "id": "1",
+        "name": "Coach John",
+        "averageRating": 4.5,
+        "totalRatings": 4,
+        "allRatings": {
+            "uid1": 5,
+            "uid2": 4,
+            "uid3": 4,
+            "uid4": 5
+        }
+    },
+    {
+        "id": "2",
+        "name": "Coach Sarah",
+        "averageRating": 4.5,
+        "totalRatings": 4,
+        "allRatings": {
+            "uid1": 5,
+            "uid2": 4,
+            "uid3": 4,
+            "uid4": 5
+        }
+    }
+]

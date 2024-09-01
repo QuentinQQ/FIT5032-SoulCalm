@@ -42,7 +42,7 @@
 <script setup>
 import { ref } from 'vue'
 import router from '@/router/index'
-import { useAuth } from '@/router/authenticate'
+import { useAuth } from '@/firebase/authenticate'
 
 const { isAuthenticated, login } = useAuth()
 

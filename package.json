@@ -20,6 +20,7 @@
     "swiper": "^11.1.11",
     "vue": "^3.4.29",
     "vue-router": "^4.4.3",
+    "vue-star-rating": "^2.1.0",
     "vue3-star-ratings": "^3.0.5"
   },
   "devDependencies": {
