@@ -23,13 +23,13 @@ const images = ref([
 ])
 
 const swiperOption = {
-  loop: true, // 启用循环
+  loop: true,
   autoplay: {
-    delay: 500, // 每次切换的延迟时间（毫秒）
-    disableOnInteraction: false // 用户操作后是否停止自动播放，false 表示不会停止
+    delay: 500,
+    disableOnInteraction: false
   },
   pagination: {
-    clickable: true // 启用并使分页器可点击
+    clickable: true
   },
   navigation: true
 }
