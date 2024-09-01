@@ -44,12 +44,28 @@
         </li>
       </ul>
 
-      <!-- Login and Register buttons -->
-      <div class="d-flex">
-        <!-- <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
-        <router-link to="/register" class="btn btn-primary">Register</router-link> -->
-        <button @click="navigateTo('/login')" class="btn btn-outline-primary me-2">Login</button>
-        <button @click="navigateTo('/register')" class="btn btn-primary">Register</button>
+      <!-- Login/Register or User Avatar -->
+      <div class="d-flex align-items-center">
+        <div v-if="isAuthenticated" class="dropdown">
+          <div
+            id="userMenu"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            style="cursor: pointer"
+          >
+            <i class="bi bi-person-circle user-icon"></i>
+          </div>
+          <!-- Dropdown Menu -->
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+            <li>
+              <button class="dropdown-item" @click="logout">Logout</button>
+            </li>
+          </ul>
+        </div>
+        <div v-else>
+          <button @click="navigateTo('/login')" class="btn btn-outline-primary me-2">Login</button>
+          <button @click="navigateTo('/register')" class="btn btn-primary">Register</button>
+        </div>
       </div>
     </div>
   </header>
@@ -57,9 +73,10 @@
 
 <script setup>
 import router from '../router'
+import { useAuth } from '@/firebase/authenticate'
 
 // const router = useRouter()
-
+const { isAuthenticated, logout } = useAuth()
 const navigateTo = (path) => {
   router.push(path)
 }
@@ -82,9 +99,14 @@ const navItems = [
   left: 0;
   width: 100%;
   z-index: 1000;
-  padding: 10px 0;
+  padding: 10px 20px;
   background-color: #f8f9fa;
   border-bottom: 1px solid #ddd;
+}
+
+.user-icon {
+  font-size: 32px;
+  color: #275fda;
 }
 
 .logo {
@@ -94,6 +116,16 @@ const navItems = [
 
 .nav-link {
   color: black;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  z-index: 1050;
 }
 
 .nav-link:hover {

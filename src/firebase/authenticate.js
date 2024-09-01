@@ -11,14 +11,6 @@ import {
     signInWithEmailAndPassword,
     signOut
 } from "firebase/auth";
-// import {
-//     addDoc,
-//     collection,
-//     doc,
-//     getDocs,
-//     query,
-//     where,
-// } from "firebase/firestore";
 import {
     useDb
 } from './firestore';
@@ -26,22 +18,6 @@ import {
 const isAuthenticated = ref(false);
 const currentRole = ref('');
 const currentUserUid = ref('');
-
-
-// const saveUserToDatabase = async (user, userRole) => {
-//     try {
-//         const docRef = await addDoc(collection(db, "users"), {
-
-//             uid: user.uid,
-//             email: user.email,
-//             role: userRole,
-//             creationTime: user.metadata.creationTime,
-//         });
-//         console.log("Document written with ID: ", docRef.id);
-//     } catch (e) {
-//         console.error("Error adding document: ", e);
-//     }
-// };
 
 /**
  * 用户注册方法
@@ -74,26 +50,6 @@ const signup = (email, password) => {
             throw error;
         });
 };
-
-
-// const getAndSetCurrentUserRole = async (uid) => {
-//     try {
-//         const q = query(collection(db, "users"), where("uid", "==", uid));
-//         const querySnapshot = await getDocs(q);
-
-//         if (!querySnapshot.empty) {
-//             querySnapshot.forEach((doc) => {
-//                 const userData = doc.data();
-//                 currentRole.value = userData.role;
-//                 console.log(`Role for UID ${uid}: ${currentRole.value}`);
-//             });
-//         } else {
-//             console.log("No document found with the specified UID!");
-//         }
-//     } catch (e) {
-//         console.error("Error getting user role from Firestore:", e);
-//     }
-// };
 
 
 /**
@@ -134,8 +90,11 @@ const logout = () => {
             currentUserUid.value = '';
 
             console.log('User logged out');
+            console.log('isAuthenticated:', isAuthenticated.value);
+            console.log('currentRole:', currentRole.value);
+            console.log('currentUserUid:', currentUserUid.value);
 
-            router.push('/login');
+            // router.push('/login');
         })
         .catch((error) => {
             console.error('Logout error:', error);
