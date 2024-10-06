@@ -43,7 +43,22 @@
           <input v-model="bookingForm.name" placeholder="Your Name" required />
           <input v-model="bookingForm.email" type="email" placeholder="Your Email" required />
           <input v-model="bookingForm.phone" type="tel" placeholder="Your Phone" required />
-          <input v-model="bookingForm.appointmentDate" type="datetime-local" required />
+          <input
+            type="date"
+            v-model="bookingForm.appointmentDate"
+            @change="handleDateChange"
+            required
+          />
+          <select v-model="bookingForm.timeSlot" required>
+            <option
+              v-for="slot in availableTimeSlots"
+              :key="slot"
+              :value="slot"
+              :disabled="isTimeSlotBooked(slot)"
+            >
+              {{ slot }}
+            </option>
+          </select>
           <textarea v-model="bookingForm.notes" placeholder="Any notes or questions?"></textarea>
           <button type="submit">Submit Booking</button>
           <button @click="closeBookingModal">Cancel</button>
@@ -73,23 +88,74 @@ const bookingForm = reactive({
   appointmentDate: '',
   notes: ''
 })
+// 修改56
+const availableTimeSlots = ref([]) // 动态生成的时间段
+const bookedTimeSlots = ref([]) // 已预约的时间段
 
 const openBookingModal = (coach) => {
+  if (!isAuthenticated.value) {
+    alert('Please log in to book an appointment.')
+    return
+  }
   selectedCoach.value = coach
   showBookingModal.value = true
 }
-
 const closeBookingModal = () => {
   showBookingModal.value = false
   Object.keys(bookingForm).forEach((key) => (bookingForm[key] = ''))
 }
 
+const generateTimeSlots = () => {
+  const startTime = 9
+  const endTime = 17
+  const timeSlots = []
+  for (let hour = startTime; hour < endTime; hour++) {
+    const start = `${hour.toString().padStart(2, '0')}:00`
+    const end = `${(hour + 1).toString().padStart(2, '0')}:00`
+    timeSlots.push(`${start}-${end}`)
+  }
+  return timeSlots
+}
+
+// const fetchBookedAppointments = async (coachId, date) => {
+//   try {
+//     const appointments = await useDb.getUpcomingAppointments(coachId, date)
+//     bookedTimeSlots.value = appointments.map((app) => app.timeSlot)
+//   } catch (error) {
+//     console.error('Error fetching booked appointments:', error)
+//   }
+// }
+
+const isTimeSlotBooked = (timeSlot) => {
+  return bookedTimeSlots.value.includes(timeSlot)
+}
+
+// Triggered when the date is selected, it generates the available time period on the day and excludes the reserved ones.
+const handleDateChange = async () => {
+  console.log('Selected date:', bookingForm.appointmentDate)
+  if (bookingForm.appointmentDate) {
+    const bookedSlots = await useDb.getAppointmentsTimeSlotByDate(
+      selectedCoach.value.id,
+      bookingForm.appointmentDate
+    )
+    bookedTimeSlots.value = bookedSlots
+    availableTimeSlots.value = generateTimeSlots().filter((slot) => !bookedSlots.includes(slot))
+  }
+}
+
 const submitBooking = async () => {
   try {
-    await bookAppointment({
+    const userId = currentUserUid.value
+    await useDb.addAppointment({
       coachId: selectedCoach.value.id,
       coachName: selectedCoach.value.name,
-      ...bookingForm
+      userId: userId,
+      userName: bookingForm.name,
+      email: bookingForm.email,
+      phone: bookingForm.phone,
+      appointmentDate: bookingForm.appointmentDate,
+      timeSlot: bookingForm.timeSlot,
+      notes: bookingForm.notes
     })
     alert('Booking submitted successfully! Check your email for confirmation.')
     closeBookingModal()
@@ -98,6 +164,21 @@ const submitBooking = async () => {
     alert('Failed to submit booking. Please try again.')
   }
 }
+
+// const submitBooking = async () => {
+//   try {
+//     await bookAppointment({
+//       coachId: selectedCoach.value.id,
+//       coachName: selectedCoach.value.name,
+//       ...bookingForm
+//     })
+//     alert('Booking submitted successfully! Check your email for confirmation.')
+//     closeBookingModal()
+//   } catch (error) {
+//     console.error('Failed to submit booking:', error)
+//     alert('Failed to submit booking. Please try again.')
+//   }
+// }
 
 const handleRating = (coach) => {
   if (!isAuthenticated.value) {

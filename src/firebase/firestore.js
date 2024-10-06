@@ -1,5 +1,3 @@
-// firestore.js
-
 import {
     db
 } from '../firebase/firebase';
@@ -11,13 +9,14 @@ import {
     query,
     where,
     doc,
-    updateDoc
+    updateDoc,
+    Timestamp
 } from 'firebase/firestore';
 
 /**
- * 保存用户到 Firestore 的 "users" 集合
- * @param {Object} user - Firebase 用户对象
- * @param {ref} userRole - 用户角色
+ * Save the user's data to Firestore
+ * @param {Object} user
+ * @param {ref} userRole
  */
 const saveUserToDatabase = async (user, userRole) => {
     try {
@@ -34,9 +33,9 @@ const saveUserToDatabase = async (user, userRole) => {
 };
 
 /**
- * 获取并设置当前用户的角色
- * @param {string} uid - 用户 UID
- * @param {Object} currentRoleRef - Vue 的 ref 用于更新当前角色
+ * Get the current user's role from Firestore and update the current role ref
+ * @param {string} uid
+ * @param {Object} currentRoleRef
  */
 const getAndSetCurrentUserRole = async (uid, currentRoleRef) => {
     try {
@@ -57,14 +56,14 @@ const getAndSetCurrentUserRole = async (uid, currentRoleRef) => {
     }
 };
 
-// 获取所有教练数据
+// Get all coaches from Firestore
 const getAllCoaches = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'coaches'));
         const coaches = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            data.id = doc.id; // 将文档 ID 添加到数据中
+            data.id = doc.id;
             coaches.push(data);
         });
         return coaches;
@@ -75,18 +74,18 @@ const getAllCoaches = async () => {
 };
 
 /**
- * 更新 Firestore 中的教练评分数据
- * @param {string} coachId - 教练的 ID
- * @param {string} userId - 用户 ID
- * @param {number} rating - 用户的评分
+ * Update the coach's rating in Firestore
+ * @param {string} coachId - Coach ID
+ * @param {string} userId - User ID
+ * @param {number} rating - User's rating
  * @returns {Promise<void>}
  */
 const updateCoachRating = async (coachId, userId, rating) => {
     try {
-        // 获取教练的文档引用
+        // Get the coach's document reference
         const coachRef = doc(db, 'coaches', coachId);
 
-        // 获取当前教练数据
+        // Get the current coach data
         const coachSnapshot = await getDoc(coachRef);
         if (!coachSnapshot.exists()) {
             throw new Error('Coach not found');
@@ -95,14 +94,14 @@ const updateCoachRating = async (coachId, userId, rating) => {
         const coachData = coachSnapshot.data();
 
         const allRatings = coachData.allRatings || {};
-        // 更新用户的评分
+        // Update
         allRatings[userId] = rating;
 
         const totalRatings = Object.keys(allRatings).length;
         const totalScore = Object.values(allRatings).reduce((acc, val) => acc + val, 0);
         const averageRating = totalScore / totalRatings;
 
-        // 更新 Firestore 中的教练文档
+        // Update the coach's rating
         await updateDoc(coachRef, {
             allRatings,
             totalRatings,
@@ -116,10 +115,64 @@ const updateCoachRating = async (coachId, userId, rating) => {
     }
 };
 
-// 将所有 Firestore 函数一起打包导出
+const getAppointmentsTimeSlotByDate = async (coachId, selectedDate) => {
+    try {
+        // 假设 selectedDate 为 'YYYY-MM-DD' 格式，仅比较日期部分
+        const appointmentsRef = collection(db, 'appointments');
+        const appointmentsQuery = query(
+            appointmentsRef,
+            where('coachId', '==', coachId),
+            where('appointmentDate', '==', selectedDate) // 直接按日期匹配
+        );
+
+        const querySnapshot = await getDocs(appointmentsQuery);
+        const bookedTimeSlots = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.timeSlot) {
+                bookedTimeSlots.push(data.timeSlot); // 收集所有已预约的 timeSlot
+            }
+        });
+
+        return bookedTimeSlots;
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        return [];
+    }
+};
+
+const addAppointment = async (appointmentData) => {
+    try {
+        const appointmentsRef = collection(db, 'appointments');
+        const appointmentRef = await addDoc(appointmentsRef, {
+            coachId: appointmentData.coachId,
+            coachName: appointmentData.coachName,
+            userName: appointmentData.userName,
+            userId: appointmentData.userId,
+            email: appointmentData.email,
+            phone: appointmentData.phone,
+            appointmentDate: appointmentData.appointmentDate,
+            timeSlot: appointmentData.timeSlot,
+            notes: appointmentData.notes,
+            createdAt: new Date()
+        });
+
+        console.log('Appointment successfully created with ID: ', appointmentRef.id);
+        return appointmentRef.id;
+    } catch (error) {
+        console.error('Error adding appointment: ', error);
+        throw new Error('Failed to add appointment');
+    }
+};
+
+
+
+// Export functions
 export const useDb = {
     saveUserToDatabase,
     getAndSetCurrentUserRole,
     getAllCoaches,
-    updateCoachRating
+    updateCoachRating,
+    getAppointmentsTimeSlotByDate,
+    addAppointment
 };
