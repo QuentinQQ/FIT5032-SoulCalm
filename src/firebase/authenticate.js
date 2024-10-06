@@ -20,9 +20,8 @@ const currentRole = ref('');
 const currentUserUid = ref('');
 
 /**
- * 用户注册方法
- * @param {string} email - 用户的电子邮件地址
- * @param {string} password - 用户的密码
+ * @param {string} email
+ * @param {string} password
  */
 const signup = (email, password) => {
     const defaultRole = ref('user');
@@ -53,9 +52,8 @@ const signup = (email, password) => {
 
 
 /**
- * 用户登录方法
- * @param {string} email - 用户的电子邮件地址
- * @param {string} password - 用户的密码
+ * @param {string} email
+ * @param {string} password
  */
 const login = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password)

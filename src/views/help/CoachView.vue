@@ -19,6 +19,9 @@
         <div v-else>
           <p>Your Rating: {{ coach.userRating }}</p>
         </div>
+        <div>
+          <button @click="openBookingModal(coach)">Booking</button>
+        </div>
       </div>
     </div>
 
@@ -29,6 +32,22 @@
         <star-rating v-model:rating="userRating" :star-size="30" :show-rating="false" />
         <button @click="submitRating">Submit Rating</button>
         <button @click="closeRatingModal">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div v-if="showBookingModal" class="booking-modal">
+      <div class="modal-content">
+        <h3>Book Appointment with {{ selectedCoach.name }}</h3>
+        <form @submit.prevent="submitBooking">
+          <input v-model="bookingForm.name" placeholder="Your Name" required />
+          <input v-model="bookingForm.email" type="email" placeholder="Your Email" required />
+          <input v-model="bookingForm.phone" type="tel" placeholder="Your Phone" required />
+          <input v-model="bookingForm.appointmentDate" type="datetime-local" required />
+          <textarea v-model="bookingForm.notes" placeholder="Any notes or questions?"></textarea>
+          <button type="submit">Submit Booking</button>
+          <button @click="closeBookingModal">Cancel</button>
+        </form>
       </div>
     </div>
   </div>
@@ -46,6 +65,39 @@ const coaches = reactive([])
 const showModal = ref(false)
 const selectedCoach = ref({})
 const userRating = ref(0)
+const showBookingModal = ref(false)
+const bookingForm = reactive({
+  name: '',
+  email: '',
+  phone: '',
+  appointmentDate: '',
+  notes: ''
+})
+
+const openBookingModal = (coach) => {
+  selectedCoach.value = coach
+  showBookingModal.value = true
+}
+
+const closeBookingModal = () => {
+  showBookingModal.value = false
+  Object.keys(bookingForm).forEach((key) => (bookingForm[key] = ''))
+}
+
+const submitBooking = async () => {
+  try {
+    await bookAppointment({
+      coachId: selectedCoach.value.id,
+      coachName: selectedCoach.value.name,
+      ...bookingForm
+    })
+    alert('Booking submitted successfully! Check your email for confirmation.')
+    closeBookingModal()
+  } catch (error) {
+    console.error('Failed to submit booking:', error)
+    alert('Failed to submit booking. Please try again.')
+  }
+}
 
 const handleRating = (coach) => {
   if (!isAuthenticated.value) {
