@@ -13,21 +13,21 @@
 
         <!-- display rate button when this user have not rated -->
         <div v-if="!coach.userHasRated">
-          <button @click="handleRating(coach)">Rate Coach</button>
+          <button class="action-button" @click="handleRating(coach)">Rate Coach</button>
         </div>
         <!-- display user's rating when this user have rated -->
         <div v-else>
           <p>Your Rating: {{ coach.userRating }}</p>
         </div>
         <div>
-          <button @click="openBookingModal(coach)">Booking</button>
+          <button class="action-button" @click="openBookingModal(coach)">Booking</button>
         </div>
       </div>
     </div>
 
     <!-- Rating Modal -->
-    <div v-if="showModal" class="rating-modal">
-      <div class="modal-content">
+    <div v-if="showModal" class="overlay" @click="closeRatingModal">
+      <div class="modal-content" @click.stop>
         <h3>Rate {{ selectedCoach.name }}</h3>
         <star-rating v-model:rating="userRating" :star-size="30" :show-rating="false" />
         <button @click="submitRating">Submit Rating</button>
@@ -36,8 +36,8 @@
     </div>
 
     <!-- Booking Modal -->
-    <div v-if="showBookingModal" class="booking-modal">
-      <div class="modal-content">
+    <div v-if="showBookingModal" class="overlay" @click="closeBookingModal">
+      <div class="modal-content" @click.stop>
         <h3>Book Appointment with {{ selectedCoach.name }}</h3>
         <form @submit.prevent="submitBooking">
           <input v-model="bookingForm.name" placeholder="Your Name" required />
@@ -190,14 +190,64 @@ onMounted(fetchCoaches)
   width: 300px;
 }
 
-.rating-modal {
+.overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
+  width: 400px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1001; /* Ensure modal content is above the overlay */
+}
+
+.modal-content button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background-color: #0056b3;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content input,
+.modal-content textarea {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.action-button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
 }
 </style>
