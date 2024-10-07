@@ -49,7 +49,8 @@
             @change="handleDateChange"
             required
           />
-          <select v-model="bookingForm.timeSlot" required>
+          <select v-if="bookingForm.appointmentDate" v-model="bookingForm.timeSlot" required>
+            <option value="" disabled>Please select available time</option>
             <option
               v-for="slot in availableTimeSlots"
               :key="slot"
@@ -65,6 +66,15 @@
         </form>
       </div>
     </div>
+
+    <!-- Booking Success Modal -->
+    <div v-if="showBookingSuccessModal" class="overlay" @click="closeBookingSuccessModal">
+      <div class="modal-content" @click.stop>
+        <h3>Booking Successful!</h3>
+        <button @click="downloadAppointmentLetter">Download Appointment Letter</button>
+        <button @click="closeBookingSuccessModal">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -73,6 +83,7 @@ import { ref, reactive, onMounted } from 'vue'
 import StarRating from 'vue-star-rating'
 import { useDb } from '@/firebase/firestore'
 import { useAuth } from '@/firebase/authenticate'
+import axios from 'axios'
 
 const { isAuthenticated, currentUserUid } = useAuth()
 
@@ -88,9 +99,14 @@ const bookingForm = reactive({
   appointmentDate: '',
   notes: ''
 })
-// 修改56
-const availableTimeSlots = ref([]) // 动态生成的时间段
-const bookedTimeSlots = ref([]) // 已预约的时间段
+const availableTimeSlots = ref([])
+const bookedTimeSlots = ref([])
+const showBookingSuccessModal = ref(false)
+const appointmentId = ref('')
+
+const closeBookingSuccessModal = () => {
+  showBookingSuccessModal.value = false
+}
 
 const openBookingModal = (coach) => {
   if (!isAuthenticated.value) {
@@ -117,15 +133,6 @@ const generateTimeSlots = () => {
   return timeSlots
 }
 
-// const fetchBookedAppointments = async (coachId, date) => {
-//   try {
-//     const appointments = await useDb.getUpcomingAppointments(coachId, date)
-//     bookedTimeSlots.value = appointments.map((app) => app.timeSlot)
-//   } catch (error) {
-//     console.error('Error fetching booked appointments:', error)
-//   }
-// }
-
 const isTimeSlotBooked = (timeSlot) => {
   return bookedTimeSlots.value.includes(timeSlot)
 }
@@ -146,39 +153,125 @@ const handleDateChange = async () => {
 const submitBooking = async () => {
   try {
     const userId = currentUserUid.value
-    await useDb.addAppointment({
+    const appointmentData = {
       coachId: selectedCoach.value.id,
       coachName: selectedCoach.value.name,
-      userId: userId,
       userName: bookingForm.name,
+      userId: userId,
       email: bookingForm.email,
       phone: bookingForm.phone,
       appointmentDate: bookingForm.appointmentDate,
       timeSlot: bookingForm.timeSlot,
       notes: bookingForm.notes
-    })
+    }
+    const newAppointmentId = await useDb.addAppointment(appointmentData)
+    appointmentId.value = newAppointmentId // store the appointmentId
+    console.log('Appointment created with ID:', newAppointmentId)
+    console.log('Appointment data:', appointmentData)
     alert('Booking submitted successfully! Check your email for confirmation.')
+    showBookingSuccessModal.value = true
     closeBookingModal()
+
+    await handlePostBookingTasks(newAppointmentId, appointmentData)
   } catch (error) {
     console.error('Failed to submit booking:', error)
     alert('Failed to submit booking. Please try again.')
   }
 }
 
-// const submitBooking = async () => {
-//   try {
-//     await bookAppointment({
-//       coachId: selectedCoach.value.id,
-//       coachName: selectedCoach.value.name,
-//       ...bookingForm
-//     })
-//     alert('Booking submitted successfully! Check your email for confirmation.')
-//     closeBookingModal()
-//   } catch (error) {
-//     console.error('Failed to submit booking:', error)
-//     alert('Failed to submit booking. Please try again.')
-//   }
-// }
+const handlePostBookingTasks = async (appointmentId, appointmentData) => {
+  try {
+    console.log('================testing-start===========================')
+    console.log('Starting post-booking tasks for appointment:', appointmentId)
+    console.log('Appointment data:', appointmentData)
+    console.log('================testing-end===========================')
+    // Generate PDF
+    const pdfResponse = await axios.post(
+      'https://generatepdf-t5kfcvh67q-uc.a.run.app',
+      appointmentData
+    )
+    console.log('=================testing-start==========================')
+    console.log('PDF generation response:', pdfResponse.data)
+    console.log('=================testing-end==========================')
+    const pdfBase64 = pdfResponse.data.pdfBase64
+    // Save PDF to Firestore
+    await useDb.savePdfToFirestore(appointmentId, pdfBase64)
+    console.log('PDF saved to Firestore successfully')
+
+    // Send a confirmation email (including the generated PDF)
+    const emailResponse = await axios.post(
+      'https://sendconfirmationemail-t5kfcvh67q-uc.a.run.app',
+      {
+        email: appointmentData.email,
+        name: appointmentData.userName,
+        coachName: appointmentData.coachName,
+        appointmentDate: appointmentData.appointmentDate,
+        timeSlot: appointmentData.timeSlot,
+        notes: appointmentData.notes,
+        pdfBase64: pdfBase64
+      }
+    )
+    console.log('================testing-start===========================')
+    console.log('Email response:', emailResponse.data)
+    console.log('================testing-end===========================')
+
+    console.log('Confirmation email sent successfully')
+
+    console.log('Post-booking tasks completed successfully')
+  } catch (error) {
+    console.error('Error in post-booking tasks:', error)
+    if (error.response && error.response.status === 500) {
+      alert(
+        "Your booking was successful, but we couldn't send a confirmation email. Please check your booking details in your account."
+      )
+    } else {
+      alert(
+        'Your booking was successful, but we encountered an issue with some additional processes. Your booking is confirmed, and you can view the details in your account.'
+      )
+    }
+  }
+}
+
+const downloadAppointmentLetter = async () => {
+  try {
+    console.log('================testing-start===========================')
+    console.log('Attempting to download appointment letter for ID:', appointmentId.value);
+    console.log('================testing-end===========================')
+    // Get base64 string from Firestore through appointmentId
+    const pdfBase64 = await useDb.getConfirmationLetterPdf(appointmentId.value);
+    
+    if (pdfBase64) {
+      console.log('================testing-start===========================')
+      console.log('PDF data retrieved successfully');
+      console.log('pdfBase64:', pdfBase64);
+      console.log('================testing-end===========================')
+      // Convert Base64 string to Blob
+      const byteCharacters = atob(pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], {type: 'application/pdf'});
+
+      // Create download link and trigger download
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'appointment_confirmation.pdf';
+      link.click();
+
+      window.URL.revokeObjectURL(link.href);
+      console.log('================testing-start===========================')
+      console.log('PDF download initiated');
+      console.log('================testing-end===========================')
+    } else {
+      throw new Error('PDF not found');
+    }
+  } catch (error) {
+    console.error('Error downloading appointment letter:', error);
+    alert('Failed to download appointment letter. Please try again.');
+  }
+};
 
 const handleRating = (coach) => {
   if (!isAuthenticated.value) {
@@ -314,6 +407,7 @@ onMounted(fetchCoaches)
 }
 
 .modal-content input,
+.modal-content select,
 .modal-content textarea {
   margin-bottom: 10px;
   padding: 10px;

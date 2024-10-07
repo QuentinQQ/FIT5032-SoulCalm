@@ -10,8 +10,10 @@ import {
     where,
     doc,
     updateDoc,
-    Timestamp
 } from 'firebase/firestore';
+
+
+
 
 /**
  * Save the user's data to Firestore
@@ -60,7 +62,9 @@ const getAndSetCurrentUserRole = async (uid, currentRoleRef) => {
 const getAllCoaches = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'coaches'));
+        console.log('Query snapshot:', querySnapshot)
         const coaches = [];
+        console.log('Query snapshot:', querySnapshot)
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             data.id = doc.id;
@@ -165,6 +169,36 @@ const addAppointment = async (appointmentData) => {
     }
 };
 
+const savePdfToFirestore = async (appointmentId, base64Pdf) => {
+    try {
+        const appointmentRef = doc(db, 'appointments', appointmentId);
+        await updateDoc(appointmentRef, {
+            pdfAttachment: base64Pdf
+        });
+        console.log('PDF saved to Firestore successfully');
+    } catch (error) {
+        console.error('Error saving PDF to Firestore:', error);
+        throw new Error('Failed to save PDF to Firestore');
+    }
+};
+
+const getConfirmationLetterPdf = async (appointmentId) => {
+    try {
+        const appointmentRef = doc(db, 'appointments', appointmentId);
+        const appointmentDoc = await getDoc(appointmentRef);
+        
+        if (appointmentDoc.exists()) {
+            const data = appointmentDoc.data();
+            return data.pdfAttachment; // return type: base64 string
+        } else {
+            console.log('No such appointment document!');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error getting PDF from Firestore:', error);
+        throw new Error('Failed to get PDF from Firestore');
+    }
+};
 
 
 // Export functions
@@ -174,5 +208,7 @@ export const useDb = {
     getAllCoaches,
     updateCoachRating,
     getAppointmentsTimeSlotByDate,
-    addAppointment
+    addAppointment,
+    savePdfToFirestore,
+    getConfirmationLetterPdf
 };
