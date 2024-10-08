@@ -103,13 +103,16 @@
 
     <!-- Reviews Modal -->
     <div v-if="showReviewsModal" class="overlay">
-      <div class="modal-content">
+      <div class="modal-content reviews-modal">
         <h3>Reviews for {{ selectedCoach.name }}</h3>
         <div class="search-section">
+            <!-- <SearchOutline class="search-icon" @click="applyFilterByComments" /> -->
           <input
             v-model="searchKeywords"
-            placeholder="Search Comments"
+            placeholder="Search By Comments"
             class="search-input"
+            @keyup.enter="applyFilterByComments"
+            maxlength="20"
           />
         </div>
         <div class="reviews-table">
@@ -117,13 +120,25 @@
             <thead>
               <tr>
                 <th>User</th>
-                <th>Rating</th>
+                <th>
+                  Rating
+                  <!-- <span @click="sortReviews('rating')" class="sort-icon">{{ getSortIcon('rating') }}</span> -->
+                  <span @click="sortReviews('rating')" class="sort-icon">
+                    <component :is="getSortIcon('rating')" />
+                  </span>
+                </th>
                 <th>Comment</th>
-                <th>Date</th>
+                <th>
+                  Date
+                  <!-- <span @click="sortReviews('timestamp')" class="sort-icon">{{ getSortIcon('timestamp') }}</span> -->
+                  <span @click="sortReviews('timestamp')" class="sort-icon">
+                    <component :is="getSortIcon('timestamp')" />
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="review in filteredReviews" :key="review.user">
+              <tr v-for="review in paginatedReviews" :key="review.user">
                 <td>{{ review.user }}</td>
                 <td>
                   <star-rating
@@ -139,6 +154,11 @@
             </tbody>
           </table>
         </div>
+        <div class="pagination">
+          <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+        </div>
         <button @click="closeReviewsModal" class="close-button">Close</button>
       </div>
     </div>
@@ -152,9 +172,10 @@ import { useDb } from '@/firebase/firestore'
 import { useAuth } from '@/firebase/authenticate'
 import axios from 'axios'
 import LoadingModal from '@/components/LoadingModal.vue';
+import { ArrowUpOutline, ArrowDownOutline, SwapVerticalOutline, SearchOutline } from '@vicons/ionicons5'
+
 
 const { isAuthenticated, currentUserUid } = useAuth()
-
 
 const coaches = reactive([])
 const showModal = ref(false)
@@ -164,12 +185,8 @@ const userRating = ref(0)
 // for reviews modal
 const reviews = ref([]);
 const searchKeywords = ref('');
-const reviewHeaders = [
-  { text: 'User', align: 'start', sortable: false, value: 'user' },
-  { text: 'Rating', value: 'rating', sortable: true },
-  { text: 'Comment', value: 'comment', sortable: false },
-  { text: 'Date', value: 'timestamp', sortable: true }
-];
+const sortCriteria = ref({ key: '', order: 'asc' });
+
 
 const userComment = ref('')
 const isRatingValid = computed(() => userRating.value > 0)
@@ -179,6 +196,8 @@ const showBookingModal = ref(false)
 const showReviewsModal = ref(false);
 const isBookingInProgress = ref(false);
 const isRatingInProgress = ref(false);
+const currentPage = ref(1);
+const itemsPerPage = 10;
 
 const bookingForm = reactive({
   name: '',
@@ -480,13 +499,45 @@ const submitRating = async () => {
   }
 }
 
-const filteredReviews = computed(() => {
-  if (!searchKeywords.value) return reviews.value;
-  const keywords = searchKeywords.value.toLowerCase();
-  return reviews.value.filter(review => 
-    review.comment.toLowerCase().includes(keywords)
-  );
+const sortedAndFilteredReviews = computed(() => {
+  let result = reviews.value;
+  
+  // filter
+  if (searchKeywords.value) {
+    const keywords = searchKeywords.value.toLowerCase();
+    result = result.filter(review => 
+      review.comment.toLowerCase().includes(keywords)
+    );
+  }
+  
+  // sort
+  if (sortCriteria.value.key) {
+    result = [...result].sort((a, b) => {
+      let compareA = a[sortCriteria.value.key];
+      let compareB = b[sortCriteria.value.key];
+      
+      if (sortCriteria.value.key === 'timestamp') {
+        compareA = new Date(compareA);
+        compareB = new Date(compareB);
+      }
+      
+      if (compareA < compareB) return sortCriteria.value.order === 'asc' ? -1 : 1;
+      if (compareA > compareB) return sortCriteria.value.order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  
+  return result;
 });
+
+const sortReviews = (key) => {
+  if (sortCriteria.value.key === key) {
+    sortCriteria.value.order = sortCriteria.value.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortCriteria.value.key = key;
+    sortCriteria.value.order = 'asc';
+  }
+};
 
 const openReviewsModal = async (coach) => {
   selectedCoach.value = coach;
@@ -497,6 +548,38 @@ const openReviewsModal = async (coach) => {
     console.error('Failed to fetch reviews:', error);
     alert('Failed to load reviews. Please try again.');
   }
+};
+
+const paginatedReviews = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return sortedAndFilteredReviews.value.slice(start, end);
+});
+
+const totalPages = computed(() => 
+  Math.ceil(sortedAndFilteredReviews.value.length / itemsPerPage)
+);
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+
+const getSortIcon = (key) => {
+  if (sortCriteria.value.key !== key) return SwapVerticalOutline;
+  return sortCriteria.value.order === 'asc' ? ArrowUpOutline : ArrowDownOutline;
+};
+
+
+const appliedFilter = ref('');
+
+const applyFilterByComments = () => {
+  appliedFilter.value = searchKeywords.value.trim();
+  currentPage.value = 1;
 };
 
 onMounted(fetchCoaches)
@@ -670,6 +753,12 @@ textarea {
 
 .reviews-table th {
   background-color: #f2f2f2;
+  cursor: pointer;
+  user-select: none;
+}
+
+.reviews-table th:hover {
+  background-color: #e0e0e0;
 }
 
 .close-button {
@@ -684,5 +773,66 @@ textarea {
 
 .close-button:hover {
   background-color: #0056b3;
+}
+
+.reviews-modal {
+  width: 80%;
+  max-width: 800px;
+}
+
+.reviews-table th {
+  position: relative;
+}
+
+.sort-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.sort-icon {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sort-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.search-section {
+  margin-bottom: 15px;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+  margin: 0;
 }
 </style>
