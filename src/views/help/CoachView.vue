@@ -14,6 +14,7 @@
           :read-only="true"
           :show-rating="false"
         />
+        <v-btn @click="openReviewsModal(coach)" color="primary">View Reviews</v-btn>
 
         <!-- display rate button when this user have not rated -->
         <div v-if="!coach.userHasRated">
@@ -99,6 +100,48 @@
         <button @click="closeBookingSuccessModal">Close</button>
       </div>
     </div>
+
+    <!-- Reviews Modal -->
+    <div v-if="showReviewsModal" class="overlay">
+      <div class="modal-content">
+        <h3>Reviews for {{ selectedCoach.name }}</h3>
+        <div class="search-section">
+          <input
+            v-model="searchKeywords"
+            placeholder="Search Comments"
+            class="search-input"
+          />
+        </div>
+        <div class="reviews-table">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="review in filteredReviews" :key="review.user">
+                <td>{{ review.user }}</td>
+                <td>
+                  <star-rating
+                    :rating="review.rating"
+                    :star-size="14"
+                    :read-only="true"
+                    :show-rating="false"
+                  />
+                </td>
+                <td>{{ review.comment }}</td>
+                <td>{{ new Date(review.timestamp).toLocaleDateString() }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button @click="closeReviewsModal" class="close-button">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -112,18 +155,31 @@ import LoadingModal from '@/components/LoadingModal.vue';
 
 const { isAuthenticated, currentUserUid } = useAuth()
 
-const isBookingInProgress = ref(false);
-const isRatingInProgress = ref(false);
 
 const coaches = reactive([])
 const showModal = ref(false)
 const selectedCoach = ref({})
 const userRating = ref(0)
 
+// for reviews modal
+const reviews = ref([]);
+const searchKeywords = ref('');
+const reviewHeaders = [
+  { text: 'User', align: 'start', sortable: false, value: 'user' },
+  { text: 'Rating', value: 'rating', sortable: true },
+  { text: 'Comment', value: 'comment', sortable: false },
+  { text: 'Date', value: 'timestamp', sortable: true }
+];
+
 const userComment = ref('')
 const isRatingValid = computed(() => userRating.value > 0)
 
+// modal controller
 const showBookingModal = ref(false)
+const showReviewsModal = ref(false);
+const isBookingInProgress = ref(false);
+const isRatingInProgress = ref(false);
+
 const bookingForm = reactive({
   name: '',
   email: '',
@@ -142,6 +198,10 @@ watch(isAuthenticated, (newValue, oldValue) => {
     fetchCoaches()
   }
 })
+
+const closeReviewsModal = () => {
+  showReviewsModal.value = false;
+};
 
 const closeBookingSuccessModal = () => {
   showBookingSuccessModal.value = false
@@ -420,6 +480,25 @@ const submitRating = async () => {
   }
 }
 
+const filteredReviews = computed(() => {
+  if (!searchKeywords.value) return reviews.value;
+  const keywords = searchKeywords.value.toLowerCase();
+  return reviews.value.filter(review => 
+    review.comment.toLowerCase().includes(keywords)
+  );
+});
+
+const openReviewsModal = async (coach) => {
+  selectedCoach.value = coach;
+  showReviewsModal.value = true;
+  try {
+    reviews.value = await useDb.getCoachReviews(coach.id);
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error);
+    alert('Failed to load reviews. Please try again.');
+  }
+};
+
 onMounted(fetchCoaches)
 </script>
 
@@ -563,5 +642,47 @@ textarea {
   border-radius: 4px;
   cursor: pointer;
   width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.reviews-table {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.reviews-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reviews-table th, .reviews-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.reviews-table th {
+  background-color: #f2f2f2;
+}
+
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #0056b3;
 }
 </style>

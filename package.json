@@ -29,7 +29,8 @@
     "vue": "^3.4.29",
     "vue-router": "^4.4.3",
     "vue-star-rating": "^2.1.0",
-    "vue3-star-ratings": "^3.0.5"
+    "vue3-star-ratings": "^3.0.5",
+    "vuetify": "^3.7.0-beta.1"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",

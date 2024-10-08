@@ -205,6 +205,32 @@ const getConfirmationLetterPdf = async (appointmentId) => {
 };
 
 
+const getCoachReviews = async (coachId) => {
+    try {
+      const coachRef = doc(db, 'coaches', coachId);
+      const coachDoc = await getDoc(coachRef);
+      
+      if (coachDoc.exists()) {
+        const coachData = coachDoc.data();
+        const allRatings = coachData.allRatings || {};
+        
+        return Object.entries(allRatings).map(([userId, ratingData], index) => ({
+          user: `User ${index + 1}`,
+          rating: ratingData.rating,
+          comment: ratingData.comment,
+          timestamp: ratingData.timestamp.toDate()
+        }));
+      } else {
+        console.log('No such coach document!');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error getting coach reviews:', error);
+      throw new Error('Failed to get coach reviews');
+    }
+  };
+  
+
 // Export functions
 export const useDb = {
     saveUserToDatabase,
@@ -214,5 +240,6 @@ export const useDb = {
     getAppointmentsTimeSlotByDate,
     addAppointment,
     savePdfToFirestore,
-    getConfirmationLetterPdf
+    getConfirmationLetterPdf,
+    getCoachReviews
 };
