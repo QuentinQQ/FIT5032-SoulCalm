@@ -1,5 +1,8 @@
 <template>
   <div class="coach-container">
+    <!-- loading modal -->
+    <LoadingModal :show="isBookingInProgress" message="Processing your booking..." />
+
     <div v-for="coach in coaches" :key="coach.id" class="coach-card">
       <div class="coach-info">
         <h2>{{ coach.name }}</h2>
@@ -84,9 +87,11 @@ import StarRating from 'vue-star-rating'
 import { useDb } from '@/firebase/firestore'
 import { useAuth } from '@/firebase/authenticate'
 import axios from 'axios'
+import LoadingModal from '@/components/LoadingModal.vue';
 
 const { isAuthenticated, currentUserUid } = useAuth()
 
+const isBookingInProgress = ref(false);
 const coaches = reactive([])
 const showModal = ref(false)
 const selectedCoach = ref({})
@@ -152,6 +157,9 @@ const handleDateChange = async () => {
 
 const submitBooking = async () => {
   try {
+    // loading modal
+    isBookingInProgress.value = true;
+
     const userId = currentUserUid.value
     const appointmentData = {
       coachId: selectedCoach.value.id,
@@ -168,12 +176,15 @@ const submitBooking = async () => {
     appointmentId.value = newAppointmentId // store the appointmentId
     console.log('Appointment created with ID:', newAppointmentId)
     console.log('Appointment data:', appointmentData)
-    alert('Booking submitted successfully! Check your email for confirmation.')
-    showBookingSuccessModal.value = true
-    closeBookingModal()
 
     await handlePostBookingTasks(newAppointmentId, appointmentData)
+    isBookingInProgress.value = false; // close loading modal
+    closeBookingModal()
+    // show booking success modal after close loading modal
+    showBookingSuccessModal.value = true
+    // alert('Booking submitted successfully! Check your email for confirmation.')
   } catch (error) {
+    isBookingInProgress.value = false; // close loading modal
     console.error('Failed to submit booking:', error)
     alert('Failed to submit booking. Please try again.')
   }
