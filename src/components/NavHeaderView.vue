@@ -42,6 +42,9 @@
         <li class="nav-item">
           <router-link to="/about" class="nav-link">About</router-link>
         </li>
+        <li v-if="isAdmin" class="nav-item">
+          <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+        </li>
       </ul>
 
       <!-- Login/Register or User Avatar -->
@@ -74,12 +77,14 @@
 <script setup>
 import router from '../router'
 import { useAuth } from '@/firebase/authenticate'
+import { computed } from 'vue'
 
 // const router = useRouter()
-const { isAuthenticated, logout } = useAuth()
+const { isAuthenticated, logout, currentRole } = useAuth()
 const navigateTo = (path) => {
   router.push(path)
 }
+const isAdmin = computed(() => isAuthenticated.value && currentRole.value === 'admin')
 
 const navItems = [
   { name: 'Home', path: '/' },

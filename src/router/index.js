@@ -17,14 +17,21 @@ import GetMentalHealthProfessionalView from '@/views/help/ProfessionalView.vue'
 import {
     useAuth,
 } from '@/firebase/authenticate'
-
+import DashboardView from '@/views/admin/DashboardView.vue'
 const {
     isAuthenticated,
     login,
     currentRole
 } = useAuth()
 
-const routes = [{
+const routes = [
+    {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: DashboardView,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
         path: '/',
         name: 'Home',
         component: Home
