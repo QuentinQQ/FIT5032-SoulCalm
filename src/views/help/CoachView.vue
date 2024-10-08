@@ -2,6 +2,7 @@
   <div class="coach-container">
     <!-- loading modal -->
     <LoadingModal :show="isBookingInProgress" message="Processing your booking..." />
+    <LoadingModal :show="isRatingInProgress" message="Processing your rating..." />
 
     <div v-for="coach in coaches" :key="coach.id" class="coach-card">
       <div class="coach-info">
@@ -28,13 +29,33 @@
       </div>
     </div>
 
-    <!-- Rating Modal -->
     <div v-if="showModal" class="overlay" @click="closeRatingModal">
       <div class="modal-content" @click.stop>
         <h3>Rate {{ selectedCoach.name }}</h3>
-        <star-rating v-model:rating="userRating" :star-size="30" :show-rating="false" />
-        <button @click="submitRating">Submit Rating</button>
-        <button @click="closeRatingModal">Cancel</button>
+        <div class="rating-section">
+          <label for="rating">Your Rating:</label>
+          <star-rating 
+            v-model:rating="userRating" 
+            :star-size="30" 
+            :show-rating="false"
+            id="rating"
+          />
+        </div>
+        <div class="comment-section">
+          <label for="comment">Your Comment:</label>
+          <textarea 
+            v-model="userComment" 
+            id="comment"
+            rows="4"
+            placeholder="Please share your experience with this coach (optional)"
+            maxlength="100"
+          ></textarea>
+          <div class="char-count">{{ userComment.length }}/100</div>
+        </div>
+        <div class="button-group">
+          <button @click="submitRating" :disabled="!isRatingValid">Submit Rating</button>
+          <button @click="closeRatingModal" class="cancel-button">Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -82,7 +103,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import StarRating from 'vue-star-rating'
 import { useDb } from '@/firebase/firestore'
 import { useAuth } from '@/firebase/authenticate'
@@ -92,10 +113,16 @@ import LoadingModal from '@/components/LoadingModal.vue';
 const { isAuthenticated, currentUserUid } = useAuth()
 
 const isBookingInProgress = ref(false);
+const isRatingInProgress = ref(false);
+
 const coaches = reactive([])
 const showModal = ref(false)
 const selectedCoach = ref({})
 const userRating = ref(0)
+
+const userComment = ref('')
+const isRatingValid = computed(() => userRating.value > 0)
+
 const showBookingModal = ref(false)
 const bookingForm = reactive({
   name: '',
@@ -108,6 +135,13 @@ const availableTimeSlots = ref([])
 const bookedTimeSlots = ref([])
 const showBookingSuccessModal = ref(false)
 const appointmentId = ref('')
+
+watch(isAuthenticated, (newValue, oldValue) => {
+  if (oldValue && !newValue) {
+    // When user logout
+    fetchCoaches()
+  }
+})
 
 const closeBookingSuccessModal = () => {
   showBookingSuccessModal.value = false
@@ -304,43 +338,71 @@ const closeRatingModal = () => {
   userRating.value = 0
 }
 
+
 const fetchCoaches = async () => {
   try {
     const coachesData = await useDb.getAllCoaches()
+    coaches.length = 0 // clear
     coachesData.forEach((coach) => {
-      // initialize user rating data
-      coach.userHasRated = false
-      coach.userRating = 0
+      // Initialize user rating data
+      let userHasRated = false
+      let userRating = 0
+      let totalRating = 0
+      let ratingCount = 0
 
-      // logged in and user has rated this coach
-      if (isAuthenticated.value && currentUserUid.value in coach.allRatings) {
-        coach.userHasRated = true
-        coach.userRating = coach.allRatings[currentUserUid.value]
-      }
+      // Calculate average rating and check if current user has rated
+      Object.entries(coach.allRatings).forEach(([userId, ratingData]) => {
+        totalRating += ratingData.rating
+        ratingCount++
+        if (isAuthenticated.value && userId === currentUserUid.value) {
+          userHasRated = true
+          userRating = ratingData.rating
+        }
+      })
 
-      coaches.push(coach)
+      const averageRating = ratingCount > 0 ? totalRating / ratingCount : 0
 
-      console.log('Fetched coaches:', coaches)
+      coaches.push({
+        ...coach,
+        userHasRated,
+        userRating,
+        averageRating,
+        totalRatings: ratingCount
+      })
     })
+
+    console.log('Fetched coaches:', coaches)
   } catch (error) {
     console.error('Error fetching coaches from Firestore:', error)
   }
 }
 
+
 const submitRating = async () => {
   if (userRating.value > 0) {
+    isRatingInProgress.value = true;
     const coach = selectedCoach.value
     const userId = currentUserUid.value
 
     try {
       // update user's rating in Firestore
-      await useDb.updateCoachRating(coach.id, userId, userRating.value)
+      await useDb.updateCoachRating(coach.id, userId, userRating.value, userComment.value)
 
       // update local variables
-      coach.allRatings[userId] = userRating.value
-      coach.totalRatings = Object.keys(coach.allRatings).length
-      const totalScore = Object.values(coach.allRatings).reduce((acc, rating) => acc + rating, 0)
-      coach.averageRating = totalScore / coach.totalRatings
+      coach.allRatings[userId] = {
+        rating: userRating.value,
+        comment: userComment.value,
+        timestamp: new Date()
+      }
+
+      let totalRating = 0
+      let ratingCount = 0
+      Object.values(coach.allRatings).forEach(ratingData => {
+        totalRating += ratingData.rating
+        ratingCount++
+      })
+      coach.averageRating = totalRating / ratingCount
+      coach.totalRatings = ratingCount
 
       coach.userHasRated = true
       coach.userRating = userRating.value
@@ -350,6 +412,8 @@ const submitRating = async () => {
     } catch (error) {
       console.error('Failed to update rating in Firestore:', error)
       alert('Failed to submit rating. Please try again.')
+    } finally {
+      isRatingInProgress.value = false;
     }
   } else {
     alert('Please select a rating before submitting.')
@@ -390,12 +454,12 @@ onMounted(fetchCoaches)
 
 .modal-content {
   background-color: #fff;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   width: 400px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   position: relative;
-  z-index: 1001; /* Ensure modal content is above the overlay */
+  z-index: 1001;
 }
 
 .modal-content button {
@@ -408,6 +472,17 @@ onMounted(fetchCoaches)
   cursor: pointer;
 }
 
+.rating-section, .comment-section {
+  margin-bottom: 20px;
+}
+
+.rating-section label, .comment-section label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+
 .modal-content button:hover {
   background-color: #0056b3;
 }
@@ -415,6 +490,59 @@ onMounted(fetchCoaches)
 .modal-content form {
   display: flex;
   flex-direction: column;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.button-group button:first-child {
+  background-color: #007bff;
+  color: white;
+}
+
+.button-group button:first-child:hover {
+  background-color: #0056b3;
+}
+
+.button-group button:first-child:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #f8f9fa;
+  color: #007bff;
+}
+
+.cancel-button:hover {
+  background-color: #e2e6ea;
 }
 
 .modal-content input,

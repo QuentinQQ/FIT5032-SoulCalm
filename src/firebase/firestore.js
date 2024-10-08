@@ -84,7 +84,7 @@ const getAllCoaches = async () => {
  * @param {number} rating - User's rating
  * @returns {Promise<void>}
  */
-const updateCoachRating = async (coachId, userId, rating) => {
+const updateCoachRating = async (coachId, userId, rating, comment) => {
     try {
         // Get the coach's document reference
         const coachRef = doc(db, 'coaches', coachId);
@@ -99,7 +99,11 @@ const updateCoachRating = async (coachId, userId, rating) => {
 
         const allRatings = coachData.allRatings || {};
         // Update
-        allRatings[userId] = rating;
+        allRatings[userId] = {
+            rating: rating,
+            comment: comment,
+            timestamp: new Date()
+        };
 
         const totalRatings = Object.keys(allRatings).length;
         const totalScore = Object.values(allRatings).reduce((acc, val) => acc + val, 0);
