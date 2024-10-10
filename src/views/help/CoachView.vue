@@ -30,7 +30,8 @@
       </div>
     </div>
 
-    <div v-if="showModal" class="overlay" @click="closeRatingModal">
+    <!-- Rating Modal -->
+    <div v-if="showRatingModal" class="overlay">
       <div class="modal-content" @click.stop>
         <h3>Rate {{ selectedCoach.name }}</h3>
         <div class="rating-section">
@@ -54,14 +55,15 @@
           <div class="char-count">{{ userComment.length }}/100</div>
         </div>
         <div class="button-group">
-          <button @click="submitRating" :disabled="!isRatingValid">Submit Rating</button>
-          <button @click="closeRatingModal" class="cancel-button">Cancel</button>
+          <button @click="submitRating" :disabled="!isRatingValid" class="primary-button">Submit Rating</button>
+          <button @click="closeRatingModal" class="secondary-button">Cancel</button>
+          <!-- <button @click="closeRatingModal" class="cancel-button">Cancel</button> -->
         </div>
       </div>
     </div>
 
     <!-- Booking Modal -->
-    <div v-if="showBookingModal" class="overlay" @click="closeBookingModal">
+    <div v-if="showBookingModal" class="overlay">
       <div class="modal-content" @click.stop>
         <h3>Book Appointment with {{ selectedCoach.name }}</h3>
         <form @submit.prevent="submitBooking">
@@ -86,8 +88,10 @@
             </option>
           </select>
           <textarea v-model="bookingForm.notes" placeholder="Any notes or questions?"></textarea>
-          <button type="submit">Submit Booking</button>
-          <button @click="closeBookingModal">Cancel</button>
+          <button type="submit" class="primary-button">Submit Booking</button>
+          <button @click="closeBookingModal" class="secondary-button">Cancel</button>
+          <!-- <button type="submit">Submit Booking</button>
+          <button @click="closeBookingModal">Cancel</button> -->
         </form>
       </div>
     </div>
@@ -96,8 +100,8 @@
     <div v-if="showBookingSuccessModal" class="overlay" @click="closeBookingSuccessModal">
       <div class="modal-content" @click.stop>
         <h3>Booking Successful!</h3>
-        <button @click="downloadAppointmentLetter">Download Appointment Letter</button>
-        <button @click="closeBookingSuccessModal">Close</button>
+        <button @click="downloadAppointmentLetter" class="primary-button">Download Appointment Letter</button>
+        <button @click="closeBookingSuccessModal" class="secondary-button">Close</button>
       </div>
     </div>
 
@@ -178,7 +182,7 @@ import { ArrowUpOutline, ArrowDownOutline, SwapVerticalOutline, SearchOutline } 
 const { isAuthenticated, currentUserUid } = useAuth()
 
 const coaches = reactive([])
-const showModal = ref(false)
+const showRatingModal = ref(false)
 const selectedCoach = ref({})
 const userRating = ref(0)
 
@@ -409,11 +413,11 @@ const handleRating = (coach) => {
 
 const openRatingModal = (coach) => {
   selectedCoach.value = coach
-  showModal.value = true
+  showRatingModal.value = true
 }
 
 const closeRatingModal = () => {
-  showModal.value = false
+  showRatingModal.value = false
   userRating.value = 0
 }
 
@@ -707,6 +711,7 @@ textarea {
   background-color: #e2e6ea;
 }
 
+
 .modal-content input,
 .modal-content select,
 .modal-content textarea {
@@ -834,5 +839,59 @@ textarea {
   font-size: 16px;
   outline: none;
   margin: 0;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+/* 主要操作按钮（如提交）*/
+.primary-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #0056b3;
+}
+
+.primary-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.secondary-button:hover {
+  background-color: #ff5252;
+}
+
+
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #ff5252;
 }
 </style>
