@@ -856,7 +856,6 @@ textarea {
   transition: background-color 0.3s;
 }
 
-/* 主要操作按钮（如提交）*/
 .primary-button {
   background-color: #007bff;
   color: white;

@@ -10,6 +10,11 @@ import {
     where,
     doc,
     updateDoc,
+    orderBy,
+    limit,
+    startAfter,
+    getCountFromServer,
+    Timestamp
 } from 'firebase/firestore';
 
 
@@ -228,8 +233,37 @@ const getCoachReviews = async (coachId) => {
       console.error('Error getting coach reviews:', error);
       throw new Error('Failed to get coach reviews');
     }
-  };
+};
+
+
+const getAllAppointments = async () => {
+    try {
+        // initialize the appointments collection to store
+        const appointmentsRef = collection(db, 'appointments');
+        const appointmentsSnapshot = await getDocs(appointmentsRef);
+        return appointmentsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt.toDate()
+        }));
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        throw error;
+    }
+};
   
+
+const getUniqueCoachNames = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'coaches'));
+      const coaches = querySnapshot.docs.map(doc => doc.data().name);
+      return [...new Set(coaches)]; // Remove duplicates
+    } catch (error) {
+      console.error('Error fetching unique coaches:', error);
+      throw error;
+    }
+  };
+
 
 // Export functions
 export const useDb = {
@@ -241,5 +275,7 @@ export const useDb = {
     addAppointment,
     savePdfToFirestore,
     getConfirmationLetterPdf,
-    getCoachReviews
+    getCoachReviews,
+    getAllAppointments,
+    getUniqueCoachNames
 };
