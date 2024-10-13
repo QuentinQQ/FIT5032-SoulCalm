@@ -16,7 +16,7 @@ import FooterView from './components/FooterView.vue'
 body {
   margin: 0;
   padding: 0;
-  overflow-y: scroll;
+  overflow-y: auto !important;
 }
 
 #app {
@@ -26,10 +26,19 @@ body {
 }
 
 .main-content {
-  flex: 1;
+  /* flex: 1;
   padding-top: 80px;
   height: calc(100vh - 80px);
   box-sizing: border-box;
+  align-content: center; */
+  /* height: calc(100vh - 80px);
+  flex: 1;
+  padding-top: 80px;
+  align-content: center; */
+  /* overflow-y: auto; */
+  flex: 1;
+  padding-top: 80px;
+  overflow-y: auto;
   align-content: center;
 }
 </style>

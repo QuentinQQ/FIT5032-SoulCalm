@@ -230,15 +230,13 @@ onMounted(async () => {
 <style scoped>
 .dashboard {
   padding: 20px;
-  min-height: calc(100vh - 80px);
   box-sizing: border-box;
+  min-height: calc(100vh - 80px);
+  /* overflow-y: auto; */
 }
 
 .appointment-table {
   margin-top: 20px;
-  overflow-x: auto;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
 }
 
 .filters {
@@ -273,9 +271,22 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+.table-container {
+  overflow: auto;
+  max-height: calc(100vh - 300px); /* 调整这个值以适应你的需求 */
+  border: 1px solid #ddd;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
 }
 
 th, td {
@@ -285,7 +296,6 @@ th, td {
 }
 
 th {
-  background-color: #f2f2f2;
   cursor: pointer;
   position: relative;
   padding-right: 20px;
@@ -322,10 +332,5 @@ th {
 .pagination button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
-}
-
-.table-container {
-  overflow-x: auto;
-  max-height: calc(100vh - 300px);
 }
 </style>

@@ -92,6 +92,7 @@ const submitForm = () => {
         showSuccessModal.value = true;
         setTimeout(() => {
           showSuccessModal.value = false;
+          document.body.style.overflow = '';
           router.push('/')
         }, 2000);
       })
