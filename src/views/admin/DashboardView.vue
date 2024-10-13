@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard">
+    <LoadingModal :show="isLoading" message="Loading data..." />
     <h1>Admin Dashboard</h1>
     <div class="appointment-table">
       <div class="filters">
@@ -39,11 +40,26 @@
                 <component :is="getSortIcon('appointmentDate')" />
               </span>
             </th>
-            <th @click="sortBy('coachName')">Coach</th>
-            <th @click="sortBy('userName')">User Name</th>
-            <th @click="sortBy('userId')">User ID</th>
+            <th @click="sortBy('coachName')">
+              Coach Name
+              <span class="sort-icon">
+                <component :is="getSortIcon('coachName')" />
+              </span>
+            </th>
+            <th @click="sortBy('userName')">
+              User Name
+              <span class="sort-icon">
+                <component :is="getSortIcon('userName')" />
+              </span>
+            </th>
+            <th @click="sortBy('userId')">
+              User ID
+              <span class="sort-icon">
+                <component :is="getSortIcon('userId')" />
+              </span>
+            </th>
             <th @click="sortBy('createdAt')">
-              Create Time
+              Create Date
               <span class="sort-icon">
                 <component :is="getSortIcon('createdAt')" />
               </span>
@@ -76,6 +92,7 @@ import { ref, computed, onMounted } from 'vue';
 import { getAuth } from 'firebase/auth';
 import axios from 'axios';
 import { SwapVerticalOutline, ArrowUpOutline, ArrowDownOutline } from '@vicons/ionicons5';
+import LoadingModal from '@/components/LoadingModal.vue';
 
 const auth = getAuth();
 const appointments = ref([]);
@@ -84,6 +101,7 @@ const lastVisibleDoc = ref(null);
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalItems = ref(0);
+const isLoading = ref(false);
 
 const filters = ref({
   bookingDateStart: '',
@@ -98,6 +116,7 @@ const filters = ref({
 const sortCriteria = ref({ key: 'createdAt', order: 'desc' });
 
 const fetchFilteredAppointments = async (isInitialLoad = false) => {
+  isLoading.value = true;
   try {
     const token = await auth.currentUser.getIdToken();
     const response = await axios.post('https://getfilteredappointments-t5kfcvh67q-uc.a.run.app', {
@@ -119,6 +138,8 @@ const fetchFilteredAppointments = async (isInitialLoad = false) => {
     totalItems.value = total;
   } catch (error) {
     console.error('Error fetching filtered appointments:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -129,6 +150,7 @@ const applyFilters = async () => {
 };
 
 const fetchUniqueCoaches = async () => {
+  isLoading.value = true;
   try {
     const token = await auth.currentUser.getIdToken();
     const response = await axios.get('https://getuniquecoachnames-t5kfcvh67q-uc.a.run.app', {
@@ -139,6 +161,8 @@ const fetchUniqueCoaches = async () => {
     uniqueCoaches.value = response.data;
   } catch (error) {
     console.error('Error fetching unique coaches:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -200,10 +224,15 @@ onMounted(async () => {
 <style scoped>
 .dashboard {
   padding: 20px;
+  min-height: calc(100vh - 80px);
+  box-sizing: border-box;
 }
 
 .appointment-table {
   margin-top: 20px;
+  overflow-x: auto;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .filters {
@@ -252,10 +281,20 @@ th, td {
 th {
   background-color: #f2f2f2;
   cursor: pointer;
+  position: relative;
+  padding-right: 20px;
 }
 
 .sort-icon {
-  float: right;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sort-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .pagination {

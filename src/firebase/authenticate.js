@@ -23,8 +23,8 @@ const currentUserUid = ref('');
  * @param {string} email
  * @param {string} password
  */
-const signup = (email, password) => {
-    const defaultRole = ref('user');
+const signup = (email, password, role) => {
+    // const defaultRole = ref('user');
     return createUserWithEmailAndPassword(auth, email, password)
         .then(async (userCredential) => {
             const user = userCredential.user;
@@ -34,7 +34,7 @@ const signup = (email, password) => {
             console.log('Last Sign In Time:', user.metadata.lastSignInTime);
             isAuthenticated.value = true;
 
-            await useDb.saveUserToDatabase(user, defaultRole);
+            await useDb.saveUserToDatabase(user, role);
 
             console.log('User signed up:', user);
             alert('User signed up successfully');

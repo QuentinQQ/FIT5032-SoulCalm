@@ -58,6 +58,18 @@
               {{ errors.confirmPassword }}
             </div>
           </div>
+          <!-- role -->
+          <div class="mb-3 form-item">
+            <label for="role" class="form-label">Role</label>
+            <select
+              class="form-control"
+              id="role"
+              v-model="formData.role"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
           <!-- submit button -->
           <div class="text-center">
             <button type="submit" class="btn btn-primary">Register</button>
@@ -78,7 +90,8 @@ const formData = ref({
   username: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  role: 'user'
 })
 
 const submittedCards = ref([])
@@ -96,7 +109,7 @@ const submitForm = () => {
     !errors.value.confirmPassword
   ) {
     // create user
-    signup(formData.value.email, formData.value.password)
+    signup(formData.value.email, formData.value.password, formData.value.role)
       .then((user) => {
         console.log('Registration successful:', user)
         clearForm()
