@@ -258,9 +258,7 @@ window.setDestination = (placeName, coordinates) => {
 .page-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   width: 100%;
-  padding-top: 80px;
 }
 
 .content-wrapper {
@@ -270,16 +268,14 @@ window.setDestination = (placeName, coordinates) => {
   padding: 0 20px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
 }
 
 .top-section {
-  flex: 0 0 75%;
+  height: 75vh;
   margin-bottom: 20px;
 }
 
 .bottom-section {
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
 }
@@ -301,8 +297,8 @@ h1 {
 }
 
 .map-container {
-  flex: 1;
   width: 100%;
+  height: 50vh;
   min-height: 300px;
 }
 
@@ -313,16 +309,13 @@ h1 {
   justify-content: center;
 }
 
-
-
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 0 10px;
-    height: auto;
   }
 
   .top-section {
-    flex: 0 0 50vh;
+    height: 50vh;
   }
 
   .map-container {

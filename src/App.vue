@@ -12,15 +12,24 @@ import NavHeaderView from './components/NavHeaderView.vue'
 import FooterView from './components/FooterView.vue'
 </script>
 
-<style scoped>
-.main-content {
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  overflow-y: scroll;
+}
+
+#app {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 120px;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 80px;
   height: calc(100vh - 80px);
   box-sizing: border-box;
-  overflow-y: auto;
+  align-content: center;
 }
 </style>
