@@ -94,12 +94,12 @@ const initializeMap = () => {
 
   map.value.addControl(geocoder, 'top-left')
 
-  // 监听搜索结果
+  // Monitor the search results
   geocoder.on('result', (e) => {
     const { result } = e
     const coordinates = result.geometry.coordinates
 
-    // 添加或更新搜索结果标记
+    // Add or update search results tags
     if (map.value.getSource('search-result')) {
       map.value.getSource('search-result').setData({
         type: 'FeatureCollection',
@@ -137,7 +137,7 @@ const initializeMap = () => {
       })
     }
 
-    // 将地图视图调整到搜索结果位置
+    // Adjust the map view to the position of the search results
     map.value.flyTo({
       center: coordinates,
       zoom: 14
@@ -230,7 +230,7 @@ const searchNearbyHospitals = async () => {
     }
   })
 
-  // 添加点击事件以显示弹出窗口和设置导航
+  // Add click events to display pop-up windows and set navigation
   map.value.on('click', 'nearby-hospitals', (e) => {
     const coordinates = e.features[0].geometry.coordinates.slice()
     const { title, description } = e.features[0].properties
@@ -241,13 +241,13 @@ const searchNearbyHospitals = async () => {
       .addTo(map.value)
   })
 
-  // 调整地图视图以显示所有医院
+  // Adjust the map view to display all hospitals
   const bounds = new mapboxgl.LngLatBounds()
   data.features.forEach(feature => bounds.extend(feature.center))
   map.value.fitBounds(bounds, { padding: 50 })
 }
 
-// 设置目的地的函数
+// Set destination function
 window.setDestination = (placeName, coordinates) => {
   directions.value.setOrigin(userLocation.value)
   directions.value.setDestination(coordinates)
@@ -260,22 +260,22 @@ window.setDestination = (placeName, coordinates) => {
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  padding-top: 80px; /* 为固定定位的 header 留出空间 */
+  padding-top: 80px;
 }
 
 .content-wrapper {
-  max-width: 1200px; /* 或者您想要的任何宽度 */
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px; /* 添加一些左右内边距 */
+  padding: 0 20px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px); /* 减去 header 的高度 */
+  height: calc(100vh - 80px);
 }
 
 .top-section {
-  flex: 0 0 75%; /* 这里设置轮播图占据 75% 的高度，您可以根据需要调整 */
-  margin-bottom: 20px; /* 添加一些底部外边距 */
+  flex: 0 0 75%;
+  margin-bottom: 20px;
 }
 
 .bottom-section {
@@ -303,7 +303,7 @@ h1 {
 .map-container {
   flex: 1;
   width: 100%;
-  min-height: 300px; /* 减小最小高度 */
+  min-height: 300px;
 }
 
 .map-controls {
@@ -313,17 +313,16 @@ h1 {
   justify-content: center;
 }
 
-/* Mapbox 控件样式保持不变 */
 
-/* 响应式设计 */
+
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 0 10px;
-    height: auto; /* 在小屏幕上取消固定高度 */
+    height: auto;
   }
 
   .top-section {
-    flex: 0 0 50vh; /* 在小屏幕上使用视口高度的 50% */
+    flex: 0 0 50vh;
   }
 
   .map-container {

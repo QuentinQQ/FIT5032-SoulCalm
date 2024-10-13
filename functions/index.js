@@ -96,9 +96,14 @@ exports.getFilteredAppointments = onRequest((req, res) => {
         query = query.where("appointmentDate", "<=", filters.bookingDateEnd);
       }
 
+      console.log("Filters received:", filters);
+      console.log("Query before coach filter:", query);
+
       if (filters.coachName) {
         query = query.where("coachName", "==", filters.coachName);
       }
+
+      console.log("Query after coach filter:", query);
 
       if (filters.userId) {
         query = query.where("userId", "==", filters.userId);
@@ -176,104 +181,7 @@ exports.getFilteredAppointments = onRequest((req, res) => {
     }
   });
 });
-// exports.getFilteredAppointments = onRequest((req, res) => {
-//   cors(req, res, async () => {
-//     try {
-//       if (!req.headers.authorization) {
-//         res.status(401)
-//             .send("User must be authenticated to fetch appointments.");
-//         return;
-//       }
 
-//       const {
-//         filters,
-//         sortCriteria,
-//         lastDocId,
-//         itemsPerPage,
-//         isInitialLoad,
-//       } = req.body;
-
-//       const db = admin.firestore();
-//       let query = db.collection("appointments");
-
-//       // Apply filters
-//       if (filters.bookingDateStart) {
-//         query = query
-//             .where("appointmentDate", ">=", filters.bookingDateStart);
-//       }
-//       if (filters.bookingDateEnd) {
-//         query = query.where("appointmentDate", "<=", filters.bookingDateEnd);
-//       }
-//       if (filters.coachName) {
-//         query = query.where("coachName", "==", filters.coachName);
-//       }
-//       if (filters.userId) {
-//         query = query.where("userId", "==", filters.userId);
-//       }
-//       if (filters.createDateStart) {
-//         const startDate = new Date(filters.createDateStart);
-//         startDate.setHours(0, 0, 0, 0);
-//         query = query.where("createdAt", ">=", startDate);
-//       }
-//       if (filters.createDateEnd) {
-//         const endDate = new Date(filters.createDateEnd);
-//         endDate.setHours(23, 59, 59, 999);
-//         query = query.where("createdAt", "<=", endDate);
-//       }
-
-//       // Apply sorting
-//       if (sortCriteria && sortCriteria.key) {
-//         query = query.orderBy(sortCriteria.key, sortCriteria.order);
-//       } else {
-//         query = query.orderBy("createdAt", "desc");
-//       }
-
-//       // Get total count
-//       let total = 0;
-//       if (isInitialLoad || Object.values(filters).some((filter) => filter)) {
-//         const countSnapshot = await query.count().get();
-//         total = countSnapshot.data().count;
-//       }
-
-//       // Apply pagination
-//       if (lastDocId) {
-//         const lastDocSnapshot = await db
-//             .collection("appointments").doc(lastDocId).get();
-//         query = query.startAfter(lastDocSnapshot);
-//       }
-//       query = query.limit(itemsPerPage);
-
-//       // Execute query
-//       const querySnapshot = await query.get();
-
-//       // Process results
-//       let appointments = querySnapshot.docs.map((doc) => ({
-//         id: doc.id,
-//         ...doc.data(),
-//         createdAt: doc.data().createdAt.toDate().toISOString(),
-//         appointmentDate: doc.data().appointmentDate,
-//       }));
-
-//       // Client-side filtering for notes (if needed)
-//       if (filters.notes) {
-//         appointments = appointments.filter((app) =>
-//           app.notes.toLowerCase().includes(filters.notes.toLowerCase()),
-//         );
-//       }
-
-//       const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-//       res.status(200).json({
-//         appointments,
-//         lastVisible: lastVisible ? lastVisible.id : null,
-//         total,
-//       });
-//     } catch (error) {
-//       console.error("Error getting filtered appointments:", error);
-//       res.status(500).json({error: error.message});
-//     }
-//   });
-// });
 
 exports.getUniqueCoachNames = onRequest((req, res) => {
   cors(req, res, async () => {

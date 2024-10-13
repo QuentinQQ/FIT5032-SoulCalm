@@ -18,7 +18,24 @@ import {
 } from 'firebase/firestore';
 
 
-
+const getUserInfo = async (uid) => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('uid', '==', uid));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        return userDoc.data();
+      } else {
+        console.log('No user found with the given UID');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      throw error;
+    }
+};
 
 /**
  * Save the user's data to Firestore
@@ -30,7 +47,7 @@ const saveUserToDatabase = async (user, userRole) => {
         const docRef = await addDoc(collection(db, 'users'), {
             uid: user.uid,
             email: user.email,
-            role: userRole.value,
+            role: userRole,
             creationTime: user.metadata.creationTime,
         });
         console.log('Document written with ID: ', docRef.id);
@@ -130,12 +147,12 @@ const updateCoachRating = async (coachId, userId, rating, comment) => {
 
 const getAppointmentsTimeSlotByDate = async (coachId, selectedDate) => {
     try {
-        // 假设 selectedDate 为 'YYYY-MM-DD' 格式，仅比较日期部分
+        // selectedDate: 'YYYY-MM-DD'
         const appointmentsRef = collection(db, 'appointments');
         const appointmentsQuery = query(
             appointmentsRef,
             where('coachId', '==', coachId),
-            where('appointmentDate', '==', selectedDate) // 直接按日期匹配
+            where('appointmentDate', '==', selectedDate) //Match directly by date
         );
 
         const querySnapshot = await getDocs(appointmentsQuery);
@@ -143,7 +160,7 @@ const getAppointmentsTimeSlotByDate = async (coachId, selectedDate) => {
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             if (data.timeSlot) {
-                bookedTimeSlots.push(data.timeSlot); // 收集所有已预约的 timeSlot
+                bookedTimeSlots.push(data.timeSlot); // collect all booked timeSlot
             }
         });
 
@@ -277,5 +294,6 @@ export const useDb = {
     getConfirmationLetterPdf,
     getCoachReviews,
     getAllAppointments,
-    getUniqueCoachNames
+    getUniqueCoachNames,
+    getUserInfo
 };

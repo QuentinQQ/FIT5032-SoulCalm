@@ -2,6 +2,7 @@
   <div class="dashboard">
     <LoadingModal :show="isLoading" message="Loading data..." />
     <h1>Admin Dashboard</h1>
+    <h2>Users' Appointments Information:</h2>
     <div class="appointment-table">
       <div class="filters">
         <div class="date-filter">
@@ -16,9 +17,9 @@
             <option v-for="coach in uniqueCoaches" :key="coach" :value="coach">{{ coach }}</option>
           </select>
         </div>
-        <div class="user-id-filter">
-          <label>User ID:</label>
-          <input v-model="filters.userId" placeholder="Enter User ID">
+        <div class="user-name-filter">
+          <label>User Name:</label>
+          <input v-model="filters.userName" placeholder="Enter User Name">
         </div>
         <div class="date-filter">
           <label>Create Date Range:</label>
@@ -97,7 +98,6 @@ import LoadingModal from '@/components/LoadingModal.vue';
 const auth = getAuth();
 const appointments = ref([]);
 const uniqueCoaches = ref([]);
-const lastVisibleDoc = ref(null);
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalItems = ref(0);
@@ -107,13 +107,14 @@ const filters = ref({
   bookingDateStart: '',
   bookingDateEnd: '',
   coachName: '',
-  userId: '',
+  userName: '',
   createDateStart: '',
   createDateEnd: '',
   notes: ''
 });
 
 const sortCriteria = ref({ key: 'createdAt', order: 'desc' });
+
 
 const fetchFilteredAppointments = async (isInitialLoad = false) => {
   isLoading.value = true;
@@ -122,9 +123,7 @@ const fetchFilteredAppointments = async (isInitialLoad = false) => {
     const response = await axios.post('https://getfilteredappointments-t5kfcvh67q-uc.a.run.app', {
       filters: filters.value,
       sortCriteria: sortCriteria.value,
-      lastDocId: lastVisibleDoc.value,
       itemsPerPage,
-      isInitialLoad,
       currentPage: currentPage.value
     }, {
       headers: {
@@ -132,9 +131,8 @@ const fetchFilteredAppointments = async (isInitialLoad = false) => {
       }
     });
 
-    const { appointments: filteredAppointments, lastVisible, total } = response.data;
+    const { appointments: filteredAppointments, total } = response.data;
     appointments.value = filteredAppointments;
-    lastVisibleDoc.value = lastVisible;
     totalItems.value = total;
   } catch (error) {
     console.error('Error fetching filtered appointments:', error);
@@ -145,7 +143,6 @@ const fetchFilteredAppointments = async (isInitialLoad = false) => {
 
 const applyFilters = async () => {
   currentPage.value = 1;
-  lastVisibleDoc.value = null;
   await fetchFilteredAppointments(true);
 };
 
@@ -185,7 +182,6 @@ const nextPage = async () => {
 const prevPage = async () => {
   if (currentPage.value > 1) {
     currentPage.value--;
-    lastVisibleDoc.value = null;
     await fetchFilteredAppointments();
   }
 };
@@ -198,7 +194,7 @@ const sortBy = (key) => {
     sortCriteria.value.order = 'asc';
   }
   currentPage.value = 1;
-  lastVisibleDoc.value = null;
+  // lastVisibleDoc.value = null;
   applyFilters();
 };
 
@@ -211,8 +207,18 @@ const formatDate = (date) => {
   if (typeof date === 'string') {
     // String YYYY-MM-DD
     return date;
+  } else if (date instanceof Date || typeof date === 'number') {
+    const d = new Date(date);
+    return d.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   }
-  return new Date(date).toLocaleString();
+  return 'Invalid Date';
 };
 
 onMounted(async () => {
@@ -316,5 +322,10 @@ th {
 .pagination button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-height: calc(100vh - 300px);
 }
 </style>

@@ -1,5 +1,13 @@
 <template>
   <div class="container">
+    <LoadingModal :show="isLoading" message="Processing..." />
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="loading-overlay">
+      <div class="loading-content">
+        <h3>Success!</h3>
+        <div class="checkmark">✅</div>
+      </div>
+    </div>
     <div class="row justify-content-center">
       <div class="col">
         <h1 class="text-center">Login</h1>
@@ -40,12 +48,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import router from '@/router/index'
 import { useAuth } from '@/firebase/authenticate'
+import LoadingModal from '@/components/LoadingModal.vue';
 
 const { isAuthenticated, login } = useAuth()
 
+const isLoading = ref(false);
+const showSuccessModal = ref(false);
 const formData = ref({
   username: '',
   password: ''
@@ -67,21 +78,28 @@ const errors = ref({
   password: null
 })
 
+
 const submitForm = () => {
   validateName(true)
   validatePassword(true)
   if (!errors.value.username && !errors.value.password) {
+    isLoading.value = true;
     login(formData.value.username, formData.value.password)
       .then((user) => {
         console.log('Login successful:', user)
         console.log('isAuthenticated value is:', isAuthenticated.value)
-        alert('Login successful!')
-        router.push('/')
+        isLoading.value = false;
+        showSuccessModal.value = true;
+        setTimeout(() => {
+          showSuccessModal.value = false;
+          router.push('/')
+        }, 2000);
       })
       .catch((error) => {
         console.log('Login failed:', error.message)
         console.log('isAuthenticated value is:', isAuthenticated.value)
-        alert('Login failed: ' + error.message)
+        isLoading.value = false;
+        errors.value.general = error.message;
       })
   }
 }
@@ -101,6 +119,14 @@ const validatePassword = (blur) => {
     errors.value.password = null
   }
 }
+
+watch(showSuccessModal, (newValue) => {
+  if (newValue) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <style scoped>
@@ -135,6 +161,32 @@ const validatePassword = (blur) => {
 }
 
 .btn {
+  margin-top: 10px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.loading-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.checkmark {
+  font-size: 48px;
+  color: #4CAF50;
   margin-top: 10px;
 }
 </style>

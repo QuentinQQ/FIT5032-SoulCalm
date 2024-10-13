@@ -45,10 +45,6 @@ const routes = [
         path: '/community',
         name: 'Community',
         component: Community,
-        meta: {
-            requiresAuth: true,
-            role: 'user'
-        }
     },
     {
         path: '/help',

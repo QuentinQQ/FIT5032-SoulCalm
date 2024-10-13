@@ -595,6 +595,9 @@ onMounted(fetchCoaches)
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .coach-card {
@@ -603,6 +606,10 @@ onMounted(fetchCoaches)
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
   width: 300px;
+}
+
+.coach-info {
+  width: 100%;
 }
 
 .overlay {

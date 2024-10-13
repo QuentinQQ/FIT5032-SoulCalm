@@ -37,8 +37,8 @@ const signup = (email, password, role) => {
             await useDb.saveUserToDatabase(user, role);
 
             console.log('User signed up:', user);
-            alert('User signed up successfully');
-            router.push('/');
+            // alert('User signed up successfully');
+            // router.push('/');
             return user;
         })
         .catch((error) => {

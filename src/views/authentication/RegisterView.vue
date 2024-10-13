@@ -1,5 +1,13 @@
 <template>
   <div class="container">
+    <LoadingModal :show="isLoading" message="Processing..." />
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="loading-overlay">
+      <div class="loading-content">
+        <h3>Success!</h3>
+        <div class="checkmark">✅</div>
+      </div>
+    </div>
     <div class="row justify-content-center">
       <div class="col">
         <h1 class="text-center">Welcome !</h1>
@@ -81,17 +89,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import router from '@/router/index'
 import { useAuth } from '@/firebase/authenticate'
+import LoadingModal from '@/components/LoadingModal.vue';
 
 const { signup } = useAuth()
+// loading and success modal
+const isLoading = ref(false);
+const showSuccessModal = ref(false);
 
 const formData = ref({
   username: '',
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'user'
+  role: '',
 })
 
 const submittedCards = ref([])
@@ -106,16 +119,26 @@ const submitForm = () => {
     !errors.value.username &&
     !errors.value.email &&
     !errors.value.password &&
-    !errors.value.confirmPassword
+    !errors.value.confirmPassword &&
+    formData.value.role !== ''
   ) {
+    // show loading modal
+    isLoading.value = true;
     // create user
     signup(formData.value.email, formData.value.password, formData.value.role)
       .then((user) => {
         console.log('Registration successful:', user)
-        clearForm()
+        isLoading.value = false;
+        showSuccessModal.value = true;
+        setTimeout(() => {
+          showSuccessModal.value = false;
+          clearForm();
+          router.push('/login');
+        }, 2000);
       })
       .catch((error) => {
         console.error('Registration failed:', error)
+        isLoading.value = false;
         errors.value.email = error.message
       })
   }
@@ -191,6 +214,14 @@ const validateConfirmPassword = (blur) => {
     errors.value.confirmPassword = null
   }
 }
+
+watch(showSuccessModal, (newValue) => {
+  if (newValue) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <style scoped>
@@ -231,6 +262,32 @@ const validateConfirmPassword = (blur) => {
 }
 
 .btn {
+  margin-top: 10px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.loading-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.checkmark {
+  font-size: 48px;
+  color: #4CAF50;
   margin-top: 10px;
 }
 </style>

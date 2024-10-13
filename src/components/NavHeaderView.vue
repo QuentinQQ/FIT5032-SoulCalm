@@ -61,6 +61,9 @@
           <!-- Dropdown Menu -->
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
             <li>
+              <button class="dropdown-item" @click="showProfile">Profile</button>
+            </li>
+            <li>
               <button class="dropdown-item" @click="logout">Logout</button>
             </li>
           </ul>
@@ -71,20 +74,35 @@
         </div>
       </div>
     </div>
+  <!-- Profile Overlay -->
+    <div v-if="isProfileVisible" class="profile-overlay">
+    <div class="profile-content">
+      <h2>User Profile</h2>
+      <p><strong>Email:</strong> {{ email }}</p>
+      <p><strong>Role:</strong> {{ userRole }}</p>
+      <button @click="closeProfile" class="btn btn-primary">Close</button>
+    </div>
+  </div>
   </header>
 </template>
 
 <script setup>
 import router from '../router'
 import { useAuth } from '@/firebase/authenticate'
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import { useDb } from '@/firebase/firestore'
 
 // const router = useRouter()
-const { isAuthenticated, logout, currentRole } = useAuth()
+const { isAuthenticated, logout, currentRole, currentUserUid } = useAuth()
 const navigateTo = (path) => {
   router.push(path)
 }
 const isAdmin = computed(() => isAuthenticated.value && currentRole.value === 'admin')
+
+const isProfileVisible = ref(false);
+const username = ref('');
+const email = ref('');
+const userRole = ref('');
 
 const navItems = [
   { name: 'Home', path: '/' },
@@ -95,6 +113,25 @@ const navItems = [
   { name: 'Involved', path: '/involved' },
   { name: 'About', path: '/about' }
 ]
+
+const showProfile = async () => {
+  try {
+    const userInfo = await useDb.getUserInfo(currentUserUid.value);
+    if (userInfo) {
+      email.value = userInfo.email || 'N/A';
+      userRole.value = currentRole.value || 'N/A';
+      isProfileVisible.value = true;
+    } else {
+      console.error('User info not found');
+    }
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+  }
+};
+
+const closeProfile = () => {
+  isProfileVisible.value = false;
+};
 </script>
 
 <style scoped>
@@ -157,5 +194,25 @@ const navItems = [
 .btn-primary:hover {
   background-color: #004085;
   border-color: #003766;
+}
+
+.profile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.profile-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
 }
 </style>
