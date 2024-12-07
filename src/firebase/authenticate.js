@@ -91,8 +91,9 @@ const logout = () => {
             console.log('isAuthenticated:', isAuthenticated.value);
             console.log('currentRole:', currentRole.value);
             console.log('currentUserUid:', currentUserUid.value);
-
-            // router.push('/login');
+            
+            // Redirect to home page after logout
+            router.push('/');
         })
         .catch((error) => {
             console.error('Logout error:', error);
